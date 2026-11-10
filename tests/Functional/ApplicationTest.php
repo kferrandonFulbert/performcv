@@ -69,7 +69,13 @@ class ApplicationTest extends WebTestCase
     {
         $this->client->request('GET', '/');
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Un parcours unique.');
+        self::assertSelectorTextContains('h1', 'Créez votre CV');
+        self::assertSelectorTextContains('h1', 'gratuitement.');
+        self::assertSelectorTextContains('title', 'Créer un CV en ligne gratuit et adapté aux ATS');
+        self::assertSelectorExists('meta[name="description"][content*="gratuitement"]');
+        self::assertSelectorTextContains('#cv-ats h2', 'lecture par les ATS');
+        self::assertSelectorCount(4, '.home-faq details');
+        self::assertSelectorExists('.hero a[href="/inscription"]');
         $this->client->catchExceptions(true);
         $this->client->request('GET', '/app');
         self::assertResponseRedirects('/connexion');
@@ -156,6 +162,33 @@ class ApplicationTest extends WebTestCase
         $view = $this->em()->getRepository(CvViews::class)->findOneBy([]);
         self::assertNull($view->getIpAddress());
         self::assertNull($view->getUserAgent());
+    }
+
+    public function testPrintableCvContainsReadableUrlsAndOnlyVisibleSections(): void
+    {
+        $profile = $this->em()->find(Profiles::class, $this->profileId);
+        $profile->setWebsite('https://example.test/portfolio')->setLinkedinUrl('javascript:alert(1)');
+        $this->em()->flush();
+
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.cv-contact a', 'Site : https://example.test/portfolio');
+        self::assertSelectorCount(1, '.cv-contact a');
+        self::assertSelectorTextContains('.print-help', 'désactivez les en-têtes et pieds de page');
+        self::assertSelectorNotExists('.cv-experiences');
+        self::assertStringNotContainsString('SecretCompany', $this->client->getResponse()->getContent());
+
+        $cv = $this->em()->find(CvInstances::class, $this->cvId);
+        $cv->setSectionsVisibility(['experiences' => true]);
+        $this->em()->flush();
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.cv-contact a', 'Site : https://example.test/portfolio');
+        self::assertSelectorTextContains('.cv-experiences h2', 'Expériences professionnelles');
+        self::assertSelectorTextContains('[data-print]', 'PDF (ATS)');
+        self::assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;', $this->client->getResponse()->getContent());
+        self::assertSame(1, $crawler->filter('.cv-document')->count());
     }
 
     public function testProfileVisibilityAndHtmlEscaping(): void
