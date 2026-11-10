@@ -1,3 +1,5 @@
 {% extends 'base.html.twig' %}
+{% block description %}  <meta name="description" content="Découvrez ce profil professionnel - {{ profile.title }}. {{ profile.summary }}.">
+ {% endblock %}
 {% block title %}{{ profile.title }} — PerformCV{% endblock %}
 {% block body %}<div class="public-toolbar"><p>Un parcours partagé avec vous.</p><button class="button secondary" type="button" data-print>Imprimer / enregistrer en PDF</button></div>{% include 'cv/_document.html.twig' %}{% endblock %}

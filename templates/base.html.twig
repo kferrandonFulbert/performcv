@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Créez un CV à votre image et partagez votre parcours professionnel avec PerformCV.">
-    <title>{% block title %}PerformCV{% endblock %}</title>
+    {% block description %}  <meta name="description" content="Créez un CV à votre image et partagez votre parcours professionnel avec PerformCV.">
+ {% endblock %}
+     <title>{% block title %}PerformCV{% endblock %}</title>
     <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
     <script src="{{ asset('ui.js') }}" defer></script>
     {% block stylesheets %}{% endblock %}
