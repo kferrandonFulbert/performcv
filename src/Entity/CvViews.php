@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'cv_views')]
-#[ORM\Index(name: 'cv_share_id', columns: ['cv_share_id'])]
+#[ORM\Index(name: 'idx_cv_views_cv_share_id', columns: ['cv_share_id'])]
 #[ORM\Entity(repositoryClass: CvViewsRepository::class)]
 class CvViews
 {

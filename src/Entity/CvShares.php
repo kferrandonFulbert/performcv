@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'cv_shares')]
 #[ORM\UniqueConstraint(name: 'share_token', columns: ['share_token'])]
-#[ORM\Index(name: 'cv_instance_id', columns: ['cv_instance_id'])]
+#[ORM\Index(name: 'idx_cv_shares_cv_instance_id', columns: ['cv_instance_id'])]
 #[ORM\Entity(repositoryClass: CvSharesRepository::class)]
 class CvShares
 {

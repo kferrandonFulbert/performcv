@@ -7,8 +7,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'cv_instances')]
-#[ORM\Index(name: 'profile_id', columns: ['profile_id'])]
-#[ORM\Index(name: 'template_id', columns: ['template_id'])]
+#[ORM\Index(name: 'idx_cv_instances_profile_id', columns: ['profile_id'])]
+#[ORM\Index(name: 'idx_cv_instances_template_id', columns: ['template_id'])]
 #[ORM\Entity(repositoryClass: CvInstancesRepository::class)]
 class CvInstances
 {

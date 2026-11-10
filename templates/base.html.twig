@@ -1,17 +1,18 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
-
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Créez un CV à votre image et partagez votre parcours professionnel avec PerformCV.">
+    <title>{% block title %}PerformCV{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    <script src="{{ asset('ui.js') }}" defer></script>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+<a class="skip-link" href="#main">Aller au contenu</a>
+<header class="site-header"><a class="brand" href="{{ path('app_home') }}" aria-label="PerformCV, accueil"><span class="brand-icon" aria-hidden="true">p↗</span>perform<span>cv</span><span class="brand-dot">.</span></a><nav aria-label="Navigation principale">{% if app.user %}<a href="{{ path('app_dashboard') }}" {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'aria-current="page"' : '' }}>Mon espace</a><a href="{{ path('app_account') }}">Mon compte</a><form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="link" type="submit">Déconnexion ↗</button></form>{% else %}<a href="{{ path('app_login') }}">Se connecter</a><a class="button small" href="{{ path('app_register') }}">Commencer ↗</a>{% endif %}</nav></header>
+<main id="main" class="site-main">{% for type, messages in app.flashes %}{% for message in messages %}<div class="notice {{ type }}" role="status">{{ message }}</div>{% endfor %}{% endfor %}{% block body %}{% endblock %}</main>
+<footer class="site-footer"><a class="brand" href="{{ path('app_home') }}">perform<span>cv</span>.</a><p>Votre parcours. Vos perspectives.</p><a href="{{ path('app_privacy') }}">Confidentialité</a></footer>
+</body>
 </html>

@@ -1,0 +1,20 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Explicit local mode: never reads or modifies the project's environment files.
+require dirname(__DIR__).'/vendor/autoload.php';
+
+$environment = in_array('--env=test', $argv, true) ? 'test' : 'local';
+foreach ([
+    'APP_ENV' => $environment,
+    'APP_DEBUG' => '1',
+    'APP_SECRET' => 'performcv-local-development-only',
+    'DATABASE_URL' => 'sqlite:///'.str_replace('\\', '/', dirname(__DIR__)).'/.runtime/performcv_'.$environment.'.db',
+] as $key => $value) {
+    $_SERVER[$key] = $_ENV[$key] = $value;
+}
+
+$application = new Symfony\Bundle\FrameworkBundle\Console\Application(new App\Kernel($environment, true));
+$application->run();

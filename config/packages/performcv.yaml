@@ -1,0 +1,21 @@
+framework:
+    default_locale: fr
+    session:
+        cookie_secure: auto
+        cookie_httponly: true
+        cookie_samesite: lax
+        gc_maxlifetime: 7200
+
+parameters:
+    env(MESSENGER_TRANSPORT_DSN): 'sync://'
+    env(MAILER_DSN): 'null://null'
+
+when@test:
+    framework:
+        profiler:
+            collect_serializer_data: true
+
+when@dev:
+    framework:
+        profiler:
+            collect_serializer_data: true

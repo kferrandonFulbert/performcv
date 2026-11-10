@@ -1,0 +1,3 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ profile.title }} — PerformCV{% endblock %}
+{% block body %}<div class="public-toolbar"><p>Un parcours partagé avec vous.</p><button class="button secondary" type="button" data-print>Imprimer / enregistrer en PDF</button></div>{% include 'cv/_document.html.twig' %}{% endblock %}
