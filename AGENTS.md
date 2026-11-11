@@ -16,13 +16,13 @@ Les champs `subscription_type` et `is_premium` préparent une distinction entre 
 
 ## Socle technique constaté
 
-- PHP `>=8.2`, Symfony `7.4.*` LTS ; dépendances déclarées dans `composer.json`, versions installées dans `composer.lock`. La plateforme Composer est fixée à PHP 8.2 pour préserver cette compatibilité.
+- PHP `8.5.x` en développement et en production, Symfony `7.4.*` LTS ; dépendances déclarées dans `composer.json`, versions installées dans `composer.lock`. La plateforme Composer est fixée à PHP 8.5.0. Aucune compatibilité PHP 8.2/8.3/8.4 n'est ciblée.
 - Doctrine ORM `^3.7.6`, DBAL `^3.10.7`, Doctrine Migrations ; mapping par attributs PHP.
 - Twig, AssetMapper et Importmap ; Stimulus et Turbo. Conserver ce socle pour les développements frontend ordinaires.
 - PHPUnit `^9.6.38` et Symfony PHPUnit Bridge ; configuration dans `phpunit.xml.dist`.
 - Namespace applicatif `App\`, tests `App\Tests\` ; autoload PSR-4.
 - Connexion à la base via `DATABASE_URL`. Ne pas déduire le moteur réellement utilisé des seuls exemples de configuration.
-- `bin/local-console` et `public/local.php` proposent un mode local isolé avec SQLite dans `.runtime/`. Les tests imposent une autre base dédiée et les caches sont séparés par version PHP. La configuration `doctrine_lazy.php` active les objets paresseux natifs dès PHP 8.4.
+- `bin/local-console` et `public/local.php` proposent un mode local isolé avec SQLite dans `.runtime/`. Les tests imposent une autre base dédiée et les caches sont séparés par version PHP. Les objets paresseux natifs sont activés dans `config/packages/doctrine.yaml` pour PHP 8.5.
 
 Ne pas ajouter un framework frontend, une chaîne Node, une dépendance ou une montée de version sans nécessité liée à la tâche.
 

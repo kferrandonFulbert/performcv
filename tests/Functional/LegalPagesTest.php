@@ -19,6 +19,20 @@ class LegalPagesTest extends WebTestCase
             self::assertSelectorExists('footer a[href="/mentions-legales"]');
             self::assertSelectorExists('footer a[href="/cookies"]');
             self::assertSelectorNotExists('script[src*="googletagmanager"], script[src*="google-analytics"], iframe[src*="googletagmanager"]');
+            self::assertSelectorNotExists('script:not([src])');
+            $policy = $client->getResponse()->headers->get('Content-Security-Policy');
+            self::assertNotNull($policy);
+            self::assertStringContainsString("script-src 'self';", $policy);
+            self::assertStringNotContainsString("'unsafe-inline'", $policy);
+            self::assertStringNotContainsString("'unsafe-eval'", $policy);
+            foreach ($client->getCrawler()->filter('script[src]') as $script) {
+                self::assertMatchesRegularExpression('~^/(?!/)[^\\s]+$~D', $script->getAttribute('src'));
+            }
+            foreach ($client->getCrawler()->filter('*') as $element) {
+                foreach ($element->attributes as $attribute) {
+                    self::assertFalse(str_starts_with(strtolower($attribute->name), 'on'), 'Inline event handler: '.$attribute->name);
+                }
+            }
         }
         $client->request('GET', '/mentions-legales');
         self::assertSelectorTextContains('article', '520 628 587');

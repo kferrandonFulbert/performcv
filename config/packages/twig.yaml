@@ -1,6 +1,7 @@
 twig:
     file_name_pattern: '*.twig'
     globals:
+        public_seo: '@App\Service\PublicSeo'
         legal: '%performcv.legal%'
 
 when@test:
