@@ -1,5 +1,7 @@
 twig:
     file_name_pattern: '*.twig'
+    globals:
+        legal: '%performcv.legal%'
 
 when@test:
     twig:

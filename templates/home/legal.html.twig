@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mentions légales — PerformCV{% endblock %}
+{% block description %}<meta name="description" content="Éditeur de PerformCV, coordonnées de contact et informations sur l’hébergement o2switch.">{% endblock %}
+{% block body %}
+<article class="prose">
+    <h1>Mentions légales</h1>
+    <p>Mise à jour : {{ legal.updated }}.</p>
+    <h2>Éditeur et directeur de la publication</h2>
+    <p>Le site {{ legal.domain }} est créé et édité par {{ legal.name }}, entrepreneur individuel exerçant sous le régime de la microentreprise. {{ legal.name }} est le directeur de la publication et le responsable du traitement des données personnelles de PerformCV.</p>
+    {% include 'home/_legal_contact.html.twig' %}
+    <p>SIREN : {{ legal.siren }}.</p>
+    <h2>Hébergement</h2>
+    <address>o2switch — SAS<br>Chemin des Pardiaux, 63000 Clermont-Ferrand, France<br>Téléphone : <a href="tel:+33444446040">04 44 44 60 40</a><br><a href="https://www.o2switch.fr/">www.o2switch.fr</a> — <a href="mailto:support@o2switch.fr">support@o2switch.fr</a></address>
+    <h2>Contenus et droits</h2>
+    <p>Les utilisateurs restent titulaires des droits sur les contenus de leur profil et de leur CV. La mise à disposition d’un contenu ne donne pas aux visiteurs un droit général de réutilisation. Les autres contenus, marques et éléments graphiques restent soumis aux droits de leurs titulaires et aux licences applicables.</p>
+    <h2>Signaler un contenu ou exercer vos droits</h2>
+    <p>Pour signaler un contenu illicite ou une atteinte à vos droits, écrivez à <a href="mailto:{{ legal.email }}">{{ legal.email }}</a> en précisant l’adresse du contenu concerné et le motif du signalement. N’envoyez pas de mot de passe ni de copie complète de CV si elle n’est pas nécessaire.</p>
+    <p>La <a href="{{ path('app_privacy') }}">politique de confidentialité</a> décrit les traitements et vos droits. Les <a href="{{ path('app_terms') }}">conditions d’utilisation</a> présentent le fonctionnement du service. Vous pouvez <a href="{{ path('app_cookies') }}">gérer vos cookies</a> à tout moment.</p>
+</article>
+{% endblock %}

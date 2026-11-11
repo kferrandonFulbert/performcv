@@ -152,6 +152,8 @@ class ApplicationTest extends WebTestCase
 
     public function testPublicShareExcludesHiddenContentAndCountsOnce(): void
     {
+        $consent = static::getContainer()->get(\App\Service\CookieConsent::class)->cookie(true, false, false);
+        $this->client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie(\App\Service\CookieConsent::COOKIE_NAME, $consent->getValue()));
         $this->client->request('GET', '/s/'.$this->token);
         self::assertResponseIsSuccessful();
         self::assertSelectorNotExists('.cv-experiences');
@@ -386,6 +388,58 @@ class ApplicationTest extends WebTestCase
         self::assertStringNotContainsString('alert("template")', $html);
         self::assertStringNotContainsString('body{display:none}', $html);
         self::assertSelectorExists('.cv-document');
+    }
+
+    public function testShareDoesNotCountWithoutConsentOrAfterWithdrawal(): void
+    {
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertResponseIsSuccessful();
+        self::assertSame(0, $this->em()->getRepository(CvViews::class)->count([]));
+        $crawler = $this->client->request('GET', '/cookies');
+        $this->client->submit($crawler->selectButton('Tout accepter')->form(['adult' => '1']));
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertSame(1, $this->em()->getRepository(CvViews::class)->count([]));
+        $crawler = $this->client->request('GET', '/cookies');
+        $this->client->submit($crawler->selectButton('Tout refuser')->form());
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertResponseIsSuccessful();
+        self::assertSame(1, $this->em()->getRepository(CvViews::class)->count([]));
+    }
+
+    public function testPrivacyPurgeRemovesOnlyExpiredViewsAndCounters(): void
+    {
+        $em = $this->em();
+        $share = $em->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
+        $em->persist((new CvViews())->setCvShareId($share->getId())->setViewedAt(new \DateTime('-91 days')));
+        $em->persist((new CvViews())->setCvShareId($share->getId())->setViewedAt(null));
+        $em->persist((new CvViews())->setCvShareId($share->getId())->setViewedAt(new \DateTime('-1 day')));
+        $em->flush();
+        $directory = static::$kernel->getCacheDir().'/attempts';
+        if (!is_dir($directory)) {
+            mkdir($directory, 0700, true);
+        }
+        $old = $directory.'/'.hash('sha256', '192.0.2.40').'.json';
+        $recent = $directory.'/'.hash('sha256', '192.0.2.41').'.json';
+        file_put_contents($old, '{}');
+        file_put_contents($recent, '{}');
+        touch($old, time() - 3600);
+        clearstatcache();
+        try {
+            $application = new \Symfony\Bundle\FrameworkBundle\Console\Application(static::$kernel);
+            $tester = new \Symfony\Component\Console\Tester\CommandTester($application->find('app:views:purge'));
+            self::assertSame(0, $tester->execute([]));
+            self::assertStringContainsString('2 consultation(s)', $tester->getDisplay());
+            $em->clear();
+            self::assertSame(1, $em->getRepository(CvViews::class)->count([]));
+            self::assertFileDoesNotExist($old);
+            self::assertFileExists($recent);
+        } finally {
+            foreach ([$old, $recent] as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
     }
 
     private function loginOwner(): void

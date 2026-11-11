@@ -90,6 +90,8 @@ Ces règles guident les implémentations ; les simples getters et setters ne suf
 
 La limitation des tentatives utilise un subscriber et des fichiers verrouillés par IP (empreinte dans le nom), sur un seul hôte. Ne pas la considérer comme distribuée. Le partage protégé est déverrouillé pour une heure et son état est revérifié à chaque accès. Les sections masquées sont exclues des lectures du rendu. Les données HTML/CSS libres sont ignorées par les présentations internes.
 
+Les informations de l’éditeur sont centralisées dans le paramètre `performcv.legal`. Les pages `/mentions-legales`, `/confidentialite`, `/conditions-utilisation` et `/cookies` décrivent le service, également accessible aux mineurs. `CookieConsent` signe les préférences pour six mois ; l’accord aux statistiques internes exige une déclaration de majorité. Sans accord valide, aucun nouveau `CvViews` ni repère de comptage en session n’est créé. Le refus ne bloque pas la consultation des CV et efface les repères de comptage de la session. Les nombres de consultations sont donc partiels. Le marketing et les balises Google restent désactivés ; toute activation exige une nouvelle information et une nouvelle version de consentement. Les tâches de conservation et leurs limites d’exploitation sont documentées dans `docs/exploitation-donnees-personnelles.md` ; ne pas annoncer une tâche cron ou une expiration de sauvegardes comme active sans preuve d’hébergement.
+
 Pour toute fonctionnalité concernée :
 
 - Hacher les mots de passe avec un mécanisme adapté ; ne jamais stocker de mot de passe en clair. Exclure les hashes, secrets et jetons des sérialisations et journaux ordinaires.

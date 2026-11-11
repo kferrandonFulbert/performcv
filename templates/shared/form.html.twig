@@ -1,3 +1,32 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ title }} — PerformCV{% endblock %}
-{% block body %}<div class="form-layout"><aside><a class="back" href="{{ back }}">← Retour</a><p class="eyebrow">{{ eyebrow }}</p><h1>{{ title }}</h1>{% if app.request.attributes.get('_route') == 'app_account' %}<p class="lead">Ces coordonnées apparaissent sur vos CV et profils publics.</p><p><a href="{{ path('app_password') }}">Changer mon mot de passe →</a></p><p><a class="danger" href="{{ path('app_account_delete') }}">Supprimer mon compte</a></p>{% else %}<p class="lead">Les détails font la différence. Prenez le temps de raconter ce qui vous distingue.</p>{% endif %}<div class="aside-mark" aria-hidden="true">P<span>↗</span></div></aside><section class="form-card">{{ form_start(form, {attr: {'data-turbo': 'false'}}) }}{{ form_errors(form) }}{{ form_widget(form) }}<button class="button full" type="submit">{{ button }} <span aria-hidden="true">↗</span></button>{{ form_end(form) }}</section></div>{% endblock %}
+{% block body %}
+<div class="form-layout">
+    <aside>
+        <a class="back" href="{{ back }}">← Retour</a><p class="eyebrow">{{ eyebrow }}</p><h1>{{ title }}</h1>
+        {% if app.request.attributes.get('_route') == 'app_account' %}
+            <p class="lead">Ces coordonnées apparaissent sur vos CV et profils publics.</p>
+            <p><a href="{{ path('app_password') }}">Changer mon mot de passe →</a></p>
+            <p><a class="danger" href="{{ path('app_account_delete') }}">Supprimer mon compte</a></p>
+        {% else %}
+            <p class="lead">Les détails font la différence. Prenez le temps de raconter ce qui vous distingue.</p>
+        {% endif %}
+        <div class="aside-mark" aria-hidden="true">P<span>↗</span></div>
+    </aside>
+    <section class="form-card">
+        {% if app.request.attributes.get('_route') == 'app_register' %}
+            <div class="privacy-notice">
+                <p>{{ legal.name }} utilise les informations obligatoires ci-dessous pour créer et gérer votre compte et fournir les fonctions de CV demandées. Elles sont conservées jusqu’à suppression du compte, avec une revue annuelle des comptes inutilisés. Aucun accord au marketing n’est exigé pour s’inscrire.</p>
+                <p>Accès, rectification, suppression et autres droits : <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>. Consultez la <a href="{{ path('app_privacy') }}">politique de confidentialité</a> pour les destinataires, les durées et les recours, ainsi que les <a href="{{ path('app_terms') }}">conditions d’utilisation</a>.</p>
+                <p>Si tu es mineur, demande conseil à ton représentant légal avant de publier tes coordonnées. Ton profil est privé au départ.</p>
+            </div>
+        {% else %}
+            <p class="privacy-notice">Pour connaître l’utilisation de vos données et exercer vos droits, consultez notre <a href="{{ path('app_privacy') }}">politique de confidentialité</a> ou contactez <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>.</p>
+        {% endif %}
+        {{ form_start(form, {attr: {'data-turbo': 'false'}}) }}
+        {{ form_errors(form) }}{{ form_widget(form) }}
+        <button class="button full" type="submit">{{ button }} <span aria-hidden="true">↗</span></button>
+        {{ form_end(form) }}
+    </section>
+</div>
+{% endblock %}

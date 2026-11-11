@@ -4,6 +4,16 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    performcv.legal:
+        name: 'Kévin FERRANDON'
+        status: 'Entrepreneur individuel — microentrepreneur'
+        siren: '520 628 587'
+        address: '25 Rue du Sénateur Jacques Gautron, 28630 Sours, France'
+        email: 'kferrandon@gmail.com'
+        phone: '06 13 37 54 37'
+        phone_uri: '+33613375437'
+        domain: 'performcv.fr'
+        updated: '11 novembre 2026'
 
 services:
     # default configuration for services in *this* file
