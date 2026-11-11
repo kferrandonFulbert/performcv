@@ -1,0 +1,6 @@
+.cv-document.theme-elegance { --cv-color: #755b30; border: 1px solid #d7c7aa; }
+.theme-elegance .cv-header { text-align: center; border-top: 1px solid #b29a70; padding-top: 25px; }
+.theme-elegance .cv-contact { justify-content: center; }
+.theme-elegance .cv-header h1 { font: italic 44px/1.2 Georgia, serif; color: #755b30; }
+.theme-elegance .cv-section h2 { text-align: center; font-family: Georgia, serif; font-size: 15px; }
+.swatch-elegance { border: 1px solid #b29a70; background: #faf7ef; }

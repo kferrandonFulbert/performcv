@@ -442,6 +442,261 @@ class ApplicationTest extends WebTestCase
         }
     }
 
+    public function testTemplateCatalogueSeedIsIdempotentAndHasEightModels(): void
+    {
+        $this->seedCatalogue();
+        $this->seedCatalogue();
+        $templates = static::getContainer()->get(\App\Repository\WorkspaceRepository::class)->templates();
+        self::assertCount(8, $templates);
+        self::assertCount(2, array_filter($templates, static fn ($template) => $template->isFree()));
+        self::assertCount(6, array_filter($templates, static fn ($template) => $template->getPrice() === 390));
+        $this->loginOwner();
+        $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(8, '[data-template-id]');
+        self::assertSelectorTextContains('h1', 'Choisissez votre modèle');
+    }
+
+    public function testPaidPreviewDoesNotSaveAndPaidSelectionIsRejected(): void
+    {
+        $this->seedCatalogue();
+        $premium = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive']);
+        $premiumId = $premium->getId();
+        $oldTemplate = $this->em()->find(CvInstances::class, $this->cvId)->getTemplateId();
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        $form = $crawler->selectButton('Prévisualiser')->form(['cv[templateId]' => $premiumId]);
+        $this->client->submit($form);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('.theme-executive.is-preview');
+        self::assertStringNotContainsString('SecretCompany', $this->client->getResponse()->getContent());
+        self::assertSame($oldTemplate, $this->em()->find(CvInstances::class, $this->cvId)->getTemplateId());
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        $this->client->submit($crawler->selectButton('Enregistrer le CV')->form(['cv[templateId]' => $premiumId]));
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('.template-controls', 'Achetez ce modèle');
+        self::assertSame($oldTemplate, $this->em()->find(CvInstances::class, $this->cvId)->getTemplateId());
+    }
+
+    public function testFreeTemplateCanBeSavedAndPreviewRequiresValidCsrf(): void
+    {
+        $this->seedCatalogue();
+        $id = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'moderne'])->getId();
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        $form = $crawler->selectButton('Prévisualiser')->form(['cv[templateId]' => $id]);
+        $values = $form->getPhpValues();
+        $values['cv']['_token'] = 'invalid';
+        $this->client->request('POST', '/app/cv/'.$this->cvId.'/modifier', $values);
+        self::assertResponseStatusCodeSame(422);
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        $this->client->submit($crawler->selectButton('Enregistrer le CV')->form(['cv[templateId]' => $id]));
+        self::assertResponseRedirects('/app/cv/'.$this->cvId, 303);
+        $this->client->followRedirect();
+        self::assertSelectorExists('.theme-moderne:not(.is-preview)');
+    }
+
+    public function testPreviewAndCheckoutRejectOtherAccountAndInvalidCsrf(): void
+    {
+        $this->seedCatalogue();
+        $id = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive'])->getId();
+        $url = '/app/cv/'.$this->cvId.'/modeles/'.$id.'/acheter';
+        $this->client->catchExceptions(true);
+        $this->client->loginUser($this->em()->getRepository(Users::class)->findOneBy(['email' => 'other@example.test']));
+        $this->client->request('POST', '/app/cv/'.$this->cvId.'/modifier', ['_preview' => 1]);
+        self::assertResponseStatusCodeSame(403);
+        $this->client->request('POST', $url);
+        self::assertResponseStatusCodeSame(403);
+        $this->loginOwner();
+        $this->client->request('POST', $url, ['_token' => 'invalid']);
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame(0, $this->em()->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
+    }
+
+    public function testCheckoutUsesServerPriceAndReusesOpenSessionWithoutGrantingAccess(): void
+    {
+        $this->seedCatalogue();
+        $em = $this->em();
+        $template = $em->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive']);
+        $user = $em->find(Users::class, $this->ownerId);
+        $stripe = $this->getMockBuilder(\App\Service\StripeCheckout::class)
+            ->setConstructorArgs(['sk_test_fixture', 'whsec_fixture'])->onlyMethods(['create', 'retrieve'])->getMock();
+        $session = ['id' => 'cs_test_fixture', 'url' => 'https://checkout.stripe.com/c/pay/fixture', 'status' => 'open'];
+        $stripe->expects(self::once())->method('create')->with(self::callback(function (array $params) use ($template): bool {
+            self::assertSame(390, $params['line_items'][0]['price_data']['unit_amount']);
+            self::assertSame('eur', $params['line_items'][0]['price_data']['currency']);
+            self::assertSame((string) $this->ownerId, $params['metadata']['user_id']);
+            self::assertSame((string) $template->getId(), $params['metadata']['template_id']);
+            self::assertStringStartsWith('https://performcv.fr/', $params['success_url']);
+            return true;
+        }), self::stringStartsWith('performcv-template-'))->willReturn($session);
+        $stripe->expects(self::once())->method('retrieve')->with('cs_test_fixture')->willReturn($session);
+        $access = static::getContainer()->get(\App\Service\TemplateAccess::class);
+        $payments = new \App\Service\TemplatePayment($em, $stripe, $access, static::getContainer()->get(\App\Repository\TemplatePurchasesRepository::class));
+        self::assertSame($session['url'], $payments->checkout($template, $user, 'https://performcv.fr/app/cv/1/modifier'));
+        self::assertSame($session['url'], $payments->checkout($template, $user, 'https://performcv.fr/app/cv/1/modifier'));
+        self::assertSame(1, $em->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
+        self::assertFalse($access->allowed($template, $this->ownerId));
+    }
+
+    public function testSignedWebhookGrantsPermanentAccessIdempotentlyToPurchaserOnly(): void
+    {
+        [$templateId, $event] = $this->pendingTemplatePurchase();
+        $this->sendStripeEvent($event, 'invalid');
+        self::assertResponseStatusCodeSame(400);
+        $this->sendStripeEvent($event);
+        self::assertResponseIsSuccessful();
+        $event['type'] = 'checkout.session.async_payment_succeeded';
+        $this->sendStripeEvent($event);
+        self::assertResponseIsSuccessful();
+        $em = $this->em();
+        self::assertSame(1, $em->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
+        $purchase = $em->getRepository(\App\Entity\TemplatePurchases::class)->findOneBy([]);
+        self::assertNotNull($purchase->getPurchasedAt());
+        $template = $em->find(CvTemplates::class, $templateId);
+        $access = static::getContainer()->get(\App\Service\TemplateAccess::class);
+        self::assertTrue($access->allowed($template, $this->ownerId));
+        $other = $em->getRepository(Users::class)->findOneBy(['email' => 'other@example.test']);
+        self::assertFalse($access->allowed($template, $other->getId()));
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        $this->client->submit($crawler->selectButton('Enregistrer le CV')->form(['cv[templateId]' => $templateId]));
+        self::assertResponseRedirects('/app/cv/'.$this->cvId, 303);
+        $this->client->followRedirect();
+        self::assertSelectorExists('.theme-executive:not(.is-preview)');
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('.theme-executive');
+    }
+
+    public function testWebhookRejectsWrongAmountModeAndUnpaidSession(): void
+    {
+        [$templateId, $event] = $this->pendingTemplatePurchase();
+        $unpaid = $event;
+        $unpaid['data']['object']['payment_status'] = 'unpaid';
+        $this->sendStripeEvent($unpaid);
+        self::assertResponseIsSuccessful();
+        foreach (['amount_total' => 1, 'currency' => 'usd', 'id' => 'cs_unrelated', 'client_reference_id' => '999', 'mode' => 'subscription'] as $key => $wrong) {
+            $invalid = $event;
+            $invalid['data']['object'][$key] = $wrong;
+            $this->sendStripeEvent($invalid);
+            self::assertResponseStatusCodeSame(400);
+        }
+        $event['livemode'] = true;
+        $this->sendStripeEvent($event);
+        self::assertResponseStatusCodeSame(400);
+        $access = static::getContainer()->get(\App\Service\TemplateAccess::class);
+        self::assertFalse($access->allowed($this->em()->find(CvTemplates::class, $templateId), $this->ownerId));
+    }
+
+    public function testForgedPaidCvCannotBeRenderedOrSharedWithoutEntitlement(): void
+    {
+        $this->seedCatalogue();
+        $templateId = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive'])->getId();
+        $cv = $this->em()->find(CvInstances::class, $this->cvId);
+        $cv->setTemplateId($templateId);
+        $this->em()->flush();
+        $this->client->catchExceptions(true);
+        $this->loginOwner();
+        $this->client->request('GET', '/app/cv/'.$this->cvId);
+        self::assertResponseStatusCodeSame(403);
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testEveryModelCanBePreviewedAndStudentPutsEducationFirst(): void
+    {
+        $this->seedCatalogue();
+        $templates = static::getContainer()->get(\App\Repository\WorkspaceRepository::class)->templates();
+        $ids = array_column(array_map(static fn ($template) => ['slug' => $template->getSlug(), 'id' => $template->getId()], $templates), 'id', 'slug');
+        $this->loginOwner();
+        foreach ($ids as $slug => $id) {
+            $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+            $this->client->submit($crawler->selectButton('Prévisualiser')->form(['cv[templateId]' => $id]));
+            self::assertResponseIsSuccessful();
+            self::assertSelectorExists('.theme-'.$slug.'.is-preview');
+            self::assertSelectorNotExists('.cv-experiences');
+        }
+        $em = $this->em();
+        $cv = $em->find(CvInstances::class, $this->cvId);
+        $cv->setTemplateId($ids['etudiant'])->setSectionsVisibility(null);
+        $education = (new \App\Entity\Educations())->setProfileId($this->profileId)->setInstitution('École fictive')->setDegree('Diplôme fictif');
+        $em->persist($education);
+        $em->flush();
+        $presentation = static::getContainer()->get(\App\Service\CvPresentation::class)->build($em->find(Profiles::class, $this->profileId), $cv, true);
+        self::assertSame('educations', array_key_first($presentation['content']));
+    }
+
+    public function testInactiveTemplateIsNotSelectableAndSuccessReturnDoesNotGrantAccess(): void
+    {
+        $this->seedCatalogue();
+        $template = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive']);
+        $templateId = $template->getId();
+        $template->setIsActive(false);
+        $this->em()->flush();
+        $this->loginOwner();
+        $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier?payment=confirmation');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('[data-template-id="'.$templateId.'"]');
+        self::assertSame(0, $this->em()->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
+    }
+
+    public function testNewCvUsesEditorAndCanSaveFreeModel(): void
+    {
+        $this->seedCatalogue();
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/profils/'.$this->profileId.'/cv/nouveau');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(8, '[data-template-id]');
+        $this->client->submit($crawler->selectButton('Enregistrer le CV')->form());
+        self::assertResponseStatusCodeSame(303);
+        $this->client->followRedirect();
+        self::assertSelectorExists('.theme-classique:not(.is-preview)');
+        self::assertSame(2, $this->em()->getRepository(CvInstances::class)->count(['profile_id' => $this->profileId]));
+    }
+
+    public function testDeletingAccountRemovesItsPurchasesAndLateWebhookDoesNotRestoreThem(): void
+    {
+        [, $event] = $this->pendingTemplatePurchase();
+        static::getContainer()->get(\App\Service\WorkspaceWriter::class)->deleteAccount($this->em()->find(Users::class, $this->ownerId));
+        self::assertSame(0, $this->em()->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
+        $this->sendStripeEvent($event);
+        self::assertResponseIsSuccessful();
+        self::assertSame(0, $this->em()->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
+    }
+
+    private function seedCatalogue(): void
+    {
+        $application = new \Symfony\Bundle\FrameworkBundle\Console\Application(static::$kernel);
+        $tester = new \Symfony\Component\Console\Tester\CommandTester($application->find('app:templates:seed'));
+        self::assertSame(0, $tester->execute([]));
+    }
+
+    private function pendingTemplatePurchase(): array
+    {
+        $this->seedCatalogue();
+        $template = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive']);
+        $purchase = (new \App\Entity\TemplatePurchases($this->ownerId, $template->getId(), 390))->setCheckoutSessionId('cs_test_fixture');
+        $this->em()->persist($purchase);
+        $this->em()->flush();
+        return [$template->getId(), [
+            'id' => 'evt_fixture', 'object' => 'event', 'type' => 'checkout.session.completed', 'livemode' => false,
+            'data' => ['object' => ['id' => 'cs_test_fixture', 'object' => 'checkout.session', 'mode' => 'payment',
+                'payment_status' => 'paid', 'amount_total' => 390, 'currency' => 'eur', 'payment_intent' => 'pi_fixture',
+                'client_reference_id' => (string) $purchase->getId(),
+                'metadata' => ['purchase_id' => (string) $purchase->getId(), 'user_id' => (string) $this->ownerId, 'template_id' => (string) $template->getId()],
+            ]],
+        ]];
+    }
+
+    private function sendStripeEvent(array $event, ?string $signature = null): void
+    {
+        $payload = json_encode($event, JSON_THROW_ON_ERROR);
+        $timestamp = time();
+        $signature ??= 't='.$timestamp.',v1='.hash_hmac('sha256', $timestamp.'.'.$payload, 'whsec_performcv_fixture_not_a_real_secret');
+        $this->client->request('POST', '/stripe/webhook', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_STRIPE_SIGNATURE' => $signature], $payload);
+    }
+
     private function loginOwner(): void
     {
         $this->client->loginUser($this->em()->find(Users::class, $this->ownerId));

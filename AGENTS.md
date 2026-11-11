@@ -12,7 +12,7 @@ PerformCV est une application de gestion de profils professionnels, de compositi
 
 Le parcours métier suggéré par les données est : compte utilisateur → profil professionnel et rubriques → instance de CV utilisant un modèle → lien de partage → consultations.
 
-Les champs `subscription_type` et `is_premium` préparent une distinction entre offres et modèles premium. Ils ne prouvent pas l'existence d'un paiement, de quotas ou de droits commerciaux implémentés. Ne pas inventer ces règles.
+`subscription_type` ne porte aucune règle d'abonnement. Les modèles du catalogue comprennent deux gratuits et six à 390 centimes ; les achats uniques via Stripe Checkout sont implémentés, mais nécessitent les clés et le webhook de l'environnement cible. Ne pas annoncer de paiement réel actif sans vérification. Voir `docs/modeles-et-paiements.md`.
 
 ## Socle technique constaté
 
@@ -41,7 +41,8 @@ Toutes les entités ont un identifiant `id` entier généré. Les liens indiqué
 | `Languages` | Langue et niveau | `profile_id` → `Profiles` |
 | `Skills` | Catalogue de compétences : nom et catégorie | Référencé par `ProfileSkills.skill_id` |
 | `ProfileSkills` | Compétence d'un profil, niveau, années d'expérience | `profile_id` → `Profiles`, `skill_id` → `Skills` |
-| `CvTemplates` | Nom, description, aperçu, styles CSS, structure HTML, indicateur premium | Référencé par `CvInstances.template_id` |
+| `CvTemplates` | Nom, description, slug unique nullable, prix en centimes, activité, orientation ATS, aperçu, styles CSS, structure HTML, indicateur premium | Référencé par `CvInstances.template_id` |
+| `TemplatePurchases` | Montant, devise, session Checkout unique, paiement Stripe unique, création et confirmation nullable | `user_id` → `Users`, `template_id` → `CvTemplates`, couple unique |
 | `CvInstances` | CV personnalisé : styles, visibilité des sections en JSON, palette, police, dates | `profile_id` → `Profiles`, `template_id` → `CvTemplates` |
 | `CvShares` | Jeton, visibilité, protection par mot de passe, hash, expiration, création | `cv_instance_id` → `CvInstances` |
 | `CvViews` | Consultation : IP, user-agent, date, référent | `cv_share_id` → `CvShares` |
@@ -55,6 +56,7 @@ Ne pas imposer un seul profil par utilisateur, un seul CV par profil ou un seul 
 - Un index sur un identifiant ne démontre pas une contrainte de clé étrangère en base. Vérifier le schéma réel avant de s'appuyer sur son intégrité référentielle.
 - Une conversion vers des associations ORM constitue une évolution explicite du modèle : examiner les appels existants, le mapping, les migrations et les tests concernés.
 - Unicités déclarées : `Users.email`, `Profiles.slug`, `CvShares.share_token`. Aucune unicité composite n'est déclarée sur `ProfileSkills`.
+- Le catalogue ajoute `CvTemplates.slug` unique nullable. `TemplatePurchases` impose l'unicité du couple compte/modèle et des identifiants Stripe ; ses liens restent scalaires. `purchased_at` doit être renseigné pour accorder le droit d'utilisation.
 - Plusieurs propriétés PHP sont initialisées à `null` alors que leur colonne est obligatoire. Lire les attributs `ORM\Column` et les signatures des setters ; un getter nullable ne rend pas la valeur facultative à l'enregistrement.
 - Les indicateurs `is_public`, `is_current`, `password_protected`, `is_premium` sont actuellement des entiers nullables. Préserver leur contrat ; définir explicitement le traitement de `null` dans les nouveaux parcours.
 - `Profiles.is_public` vaut initialement `0`, `CvShares.is_public` vaut initialement `1`. Ce sont deux niveaux de visibilité distincts ; ne pas déduire une politique d'accès de ces seuls défauts.
@@ -83,6 +85,7 @@ Ces règles guident les implémentations ; les simples getters et setters ne suf
 - Préserver la confidentialité des sections masquées dans tous les rendus et exports concernés, pas uniquement par un masquage visuel CSS.
 - Définir le sort des ressources liées avant d'implémenter une suppression. Utiliser une transaction pour les écritures qui doivent rester cohérentes ensemble.
 - Ne pas ajouter de génération de texte par IA, d'export PDF, de facturation ou de statistiques avancées sur la seule base du nom du projet ou d'un champ.
+- Le catalogue est initialisé par `app:templates:seed`. L'aperçu des modèles payants est autorisé uniquement après contrôle de propriété, sans écriture. L'enregistrement et les rendus enregistrés contrôlent les droits via `TemplateAccess`. Les styles viennent de la liste de confiance `TemplateCatalog`, jamais des champs HTML/CSS stockés. Seul un webhook Stripe signé et payé confirme un achat ; le retour Checkout ne l'accorde pas.
 
 ## Authentification, partage et données personnelles
 

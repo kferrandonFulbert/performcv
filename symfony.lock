@@ -58,6 +58,9 @@
             "ref": "b5d5e097e1037ea03aa254078130a32e1ca2e066"
         }
     },
+    "stripe/stripe-php": {
+        "version": "v22.1.0"
+    },
     "symfony/apache-pack": {
         "version": "1.0",
         "recipe": {

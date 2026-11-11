@@ -1,0 +1,38 @@
+{% extends 'cv/base.html.twig' %}
+{% block title %}Choisissez votre modèle — PerformCV{% endblock %}
+{% block body %}
+<a class="back" href="{{ path('app_profile_show', {id: profile.id}) }}">← Mon profil</a>
+<header class="page-heading"><div><p class="eyebrow">UN CV À VOTRE IMAGE</p><h1>Choisissez votre modèle<span class="accent">.</span></h1><p class="lead">Huit styles. Votre parcours. Prévisualisez avant de choisir.</p></div></header>
+{% if app.request.query.get('payment') == 'confirmation' %}<p class="notice" role="status">Votre paiement est en cours de confirmation. Le modèle sera disponible après confirmation de Stripe. Actualisez cette page si nécessaire.</p>{% endif %}
+{% if app.request.query.get('payment') == 'cancelled' %}<p class="notice" role="status">Vous avez quitté le paiement. Votre modèle actuel est conservé.</p>{% endif %}
+<p class="privacy-notice">Les modèles orientés ATS privilégient une lecture linéaire, sans garantie pour tous les logiciels. Les modèles graphiques sont destinés à la lecture humaine et peuvent être moins bien interprétés par certains ATS. L’impression / PDF existante conserve une version simplifiée sur une colonne.</p>
+<div class="template-editor">
+<section class="template-controls form-card">
+{{ form_start(form, {attr: {'data-cv-editor': '', 'data-turbo': 'false'}}) }}
+{{ form_errors(form) }}
+<div class="template-grid" role="group" aria-label="Modèles de CV">
+{% for template in templates %}
+    <button type="button" class="template-card" data-template-id="{{ template.id }}" data-template-owned="{{ template_rights[template.id] ? 'true' : 'false' }}" aria-pressed="{{ form.templateId.vars.value == template.id ? 'true' : 'false' }}">
+        <span class="template-swatch swatch-{{ template.slug ?: 'classique' }}" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <strong>{{ template.name }}</strong><span class="template-price">{{ template.free ? 'Gratuit' : (template.price / 100)|number_format(2, ',', ' ') ~ ' €' }}</span>
+        <span class="template-description">{{ template.description }}</span><span class="badge">{{ template.atsFriendly ? 'Orienté ATS' : 'Lecture humaine' }}</span>
+        {% if not template.free %}<span>{{ template_rights[template.id] ? 'Déjà acheté' : 'Achat unique · Accès permanent' }}</span>{% endif %}
+    </button>
+{% endfor %}
+</div>
+{{ form_row(form.templateId) }}{{ form_row(form.colorScheme) }}{{ form_row(form.fontFamily) }}
+<fieldset><legend>Rubriques visibles</legend>{% for key in ['experiences', 'educations', 'certifications', 'projects', 'skills', 'languages'] %}{{ form_row(attribute(form, key)) }}{% endfor %}</fieldset>
+<div class="actions"><button class="button secondary" type="submit" name="_preview" value="1">Prévisualiser</button><button class="button" type="submit" data-save-cv>Enregistrer le CV</button></div>
+{{ form_end(form) }}
+<p data-preview-status role="status" aria-live="polite">L’aperçu ne modifie pas votre CV. L’enregistrement d’un modèle payant nécessite son achat.</p>
+<div class="template-purchases">
+{% for template in templates %}{% if not template.free and not template_rights[template.id] %}
+    {% if cv.id and payments_ready %}
+        <form method="post" action="{{ path('app_template_buy', {id: cv.id, templateId: template.id}) }}" data-template-purchase="{{ template.id }}" data-turbo="false"><input type="hidden" name="_token" value="{{ csrf_token('buy_template_' ~ cv.id ~ '_' ~ template.id) }}"><button class="button secondary full" type="submit">Acheter {{ template.name }} · {{ (template.price / 100)|number_format(2, ',', ' ') }} €</button></form>
+    {% else %}<p data-template-purchase="{{ template.id }}">{{ template.name }} · {{ cv.id ? 'Achat bientôt disponible' : 'Enregistrez d’abord un CV gratuit pour acheter ce modèle.' }}</p>{% endif %}
+{% endif %}{% endfor %}
+</div>
+</section>
+<section class="editor-preview" aria-label="Aperçu de votre CV"><div data-preview-target>{% include 'cv/preview.html.twig' %}</div></section>
+</div>
+{% endblock %}

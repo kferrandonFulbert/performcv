@@ -88,7 +88,10 @@ class WorkspaceRepository
 
     public function templates(): array
     {
-        return $this->em->getRepository(CvTemplates::class)->findBy(['is_premium' => 0], ['id' => 'ASC'], 30);
+        $repository = $this->em->getRepository(CvTemplates::class);
+        $catalogue = $repository->findBy(['is_active' => true, 'slug' => array_keys(\App\Service\TemplateCatalog::MODELS)], ['price' => 'ASC', 'id' => 'ASC'], 8);
+        // Existing installations remain usable until the catalogue is seeded.
+        return $catalogue ?: $repository->findBy(['is_active' => true], ['id' => 'ASC'], 30);
     }
 
     public function share(string $token): ?CvShares

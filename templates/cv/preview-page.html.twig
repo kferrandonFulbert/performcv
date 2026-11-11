@@ -1,0 +1,6 @@
+{% extends 'cv/base.html.twig' %}
+{% block title %}Aperçu du modèle — PerformCV{% endblock %}
+{% block body %}
+<a class="back" href="{{ app.request.pathInfo }}">← Retour à l’éditeur</a>
+{% include 'cv/preview.html.twig' %}
+{% endblock %}

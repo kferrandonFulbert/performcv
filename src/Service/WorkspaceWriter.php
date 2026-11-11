@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\{CvInstances, CvShares, CvViews, Profiles, Users};
+use App\Entity\{CvInstances, CvShares, CvViews, Profiles, Users, TemplatePurchases};
 use Doctrine\ORM\EntityManagerInterface;
 
 class WorkspaceWriter
@@ -59,6 +59,7 @@ class WorkspaceWriter
     public function deleteAccount(Users $user): void
     {
         $this->em->wrapInTransaction(function () use ($user): void {
+            $this->deleteWhere(TemplatePurchases::class, 'user_id', $user->getId());
             do {
                 $profiles = $this->em->getRepository(Profiles::class)->findBy(['user_id' => $user->getId()], ['id' => 'ASC'], 50);
                 foreach ($profiles as $profile) {

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\{CvInstances, CvShares, Profiles};
+use App\Entity\{CvInstances, CvShares, CvTemplates, Profiles};
 use App\Form\{CvType, ShareType};
 use App\Repository\WorkspaceRepository;
-use App\Service\{CvPresentation, SectionCatalog, WorkspaceWriter};
+use App\Service\{CvPresentation, SectionCatalog, WorkspaceWriter, TemplateAccess, StripeCheckout};
+use Symfony\Component\Form\FormError;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\{Request, Response};
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
@@ -16,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/app')]
 class CvController extends AbstractController
 {
-    public function __construct(private WorkspaceRepository $data, private WorkspaceWriter $writer)
+    public function __construct(private WorkspaceRepository $data, private WorkspaceWriter $writer, private TemplateAccess $templateAccess, private CvPresentation $presentation, private StripeCheckout $stripe)
     {
     }
 
@@ -107,20 +108,41 @@ class CvController extends AbstractController
 
             return $this->redirectToRoute('app_profile_show', ['id' => $profile->getId()]);
         }
-        $form = $this->createForm(CvType::class, $cv, ['templates' => $templates])->handleRequest($request);
+        $preview = $request->isMethod('POST') && $request->request->getBoolean('_preview');
+        // Bind a copy: invalid or preview submissions must never dirty a managed CV.
+        $working = clone $cv;
+        $form = $this->createForm(CvType::class, $working, ['templates' => $templates])->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $visibility = [];
             foreach (array_keys(SectionCatalog::SECTIONS) as $key) {
                 $visibility[$key] = $form->get($key)->getData() === true;
             }
-            $cv->setSectionsVisibility($visibility)->setUpdatedAt(new \DateTime());
-            $this->writer->save($cv);
-            $this->addFlash('success', 'Votre CV a été enregistré.');
+            $working->setSectionsVisibility($visibility)->setUpdatedAt(new \DateTime());
+            if ($preview) {
+                return $this->render($request->isXmlHttpRequest() ? 'cv/preview.html.twig' : 'cv/preview-page.html.twig', $this->presentation->build($profile, $working, true));
+            }
+            $template = $this->data->find(CvTemplates::class, $working->getTemplateId());
+            if (!$template || !$template->isActive() || !$this->templateAccess->allowed($template, $profile->getUserId())) {
+                $form->get('templateId')->addError(new FormError('Achetez ce modèle pour l’utiliser. Vous pouvez le prévisualiser gratuitement.'));
+            } else {
+                $cv->setTemplateId($working->getTemplateId())->setColorScheme($working->getColorScheme())
+                    ->setFontFamily($working->getFontFamily())->setSectionsVisibility($working->getSectionsVisibility())
+                    ->setUpdatedAt(new \DateTime());
+                $this->writer->save($cv);
+                $this->addFlash('success', 'Votre CV a été enregistré.');
 
-            return $this->redirectToRoute('app_cv_show', ['id' => $cv->getId()], 303);
+                return $this->redirectToRoute('app_cv_show', ['id' => $cv->getId()], 303);
+            }
         }
 
-        return $this->render('shared/form.html.twig', ['form' => $form, 'title' => 'Un CV à votre image', 'eyebrow' => $profile->getTitle(), 'back' => $this->generateUrl('app_profile_show', ['id' => $profile->getId()]), 'button' => 'Enregistrer le CV']);
+        if ($preview) { return new Response('L’aperçu n’a pas pu être actualisé. Vérifiez les champs puis réessayez.', 422); }
+        $rights = [];
+        foreach ($templates as $template) { $rights[$template->getId()] = $this->templateAccess->allowed($template, $profile->getUserId()); }
+        $initial = clone $working;
+        if (!$initial->getTemplateId()) { $initial->setTemplateId($templates[0]->getId()); }
+        return $this->render('cv/editor.html.twig', $this->presentation->build($profile, $initial, true) + [
+            'form' => $form, 'cv' => $cv, 'templates' => $templates, 'template_rights' => $rights, 'payments_ready' => $this->stripe->ready(),
+        ], new Response(status: $form->isSubmitted() && !$form->isValid() ? 422 : 200));
     }
 
     private function ownedCv(int $id): array

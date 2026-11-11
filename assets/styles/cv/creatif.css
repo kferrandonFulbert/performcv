@@ -1,0 +1,7 @@
+.cv-document.theme-creatif { --cv-color: #923d57; }
+.theme-creatif .cv-header { background: #f6e9ed; padding: 26px; border-radius: 24px 0 24px 0; }
+.theme-creatif .cv-header h1 { color: #923d57; }
+.theme-creatif .cv-sections { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 0 26px; }
+.theme-creatif .cv-section h2 { font-size: 14px; letter-spacing: 0; text-transform: none; }
+.swatch-creatif { background: #f6e9ed; border-radius: 12px 0 12px 0; border-left: 6px solid #923d57; }
+@media (max-width: 700px) { .theme-creatif .cv-sections { display: block; } }
