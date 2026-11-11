@@ -8,7 +8,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class PublicSeo
 {
-    private const ROUTES = ['app_home', 'app_legal', 'app_privacy', 'app_terms', 'app_cookies'];
+    private const ROUTES = [
+        'app_home', 'app_legal', 'app_privacy', 'app_terms', 'app_cookies',
+        'app_cv_etudiant', 'app_cv_alternance', 'app_cv_stage', 'app_cv_developpeur_web',
+        'app_cv_sans_experience', 'app_cv_ats', 'app_cv_bts_sio', 'app_lettre_alternance',
+    ];
 
     public function __construct(private UrlGeneratorInterface $urls, private string $origin)
     {

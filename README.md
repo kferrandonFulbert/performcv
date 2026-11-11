@@ -45,6 +45,19 @@ préparées explicitement avec le lanceur local.
 `.runtime/performcv_local.db`. Créer un compte depuis l’interface. Ne pas utiliser
 ces points d’entrée pour exploiter la production.
 
+## Guides publics et SEO
+
+Huit pages éditoriales sont accessibles depuis l’accueil : `/cv-etudiant`,
+`/cv-alternance`, `/cv-stage`, `/cv-developpeur-web`, `/cv-sans-experience`,
+`/cv-ats`, `/exemple-cv/bts-sio` et `/lettre-motivation/alternance`.
+Elles proposent des exemples fictifs distincts et des liens vers la création
+de profil (ou l’inscription pour les visiteurs). La page de lettre propose un
+exemple à personnaliser : aucun générateur de lettres n’est implémenté.
+Les routes sont explicites ; aucune page n’est générée à partir d’un mot-clé libre.
+Les canoniques et le sitemap utilisent l’origine de confiance de `PublicSeo`.
+Les contenus se maintiennent dans `templates/guides/` ; toute nouvelle page
+doit aussi être ajoutée au maillage, à la liste SEO et aux tests.
+
 ## Tests
 
 ```console

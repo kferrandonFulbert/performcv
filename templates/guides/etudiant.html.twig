@@ -1,0 +1,11 @@
+{% extends 'guides/base.html.twig' %}
+{% set heading = 'CV étudiant : un exemple pour votre premier emploi' %}
+{% set description = 'Préparez un CV étudiant avec vos études, projets et disponibilités. Un exemple concret pour postuler à un job étudiant sans remplir des rubriques inutiles.' %}
+{% block guide %}
+<h2>Organiser un CV autour de votre vie étudiante</h2>
+<p>Pour un emploi à temps partiel, le recruteur cherche à comprendre ce que vous savez faire et quand vous pouvez travailler. Placez le poste visé sous votre nom, puis indiquez vos disponibilités réelles. Présentez votre formation en cours avant les expériences si elle constitue votre principal atout.</p>
+<p>Un exposé collectif, une responsabilité associative ou du tutorat peuvent illustrer votre organisation. Décrivez votre contribution personnelle plutôt que le programme entier de votre diplôme. Une page peut suffire si chaque rubrique apporte une information utile au poste.</p>
+<h2>Exemple fictif : un job en librairie</h2>
+<div class="guide-example"><h3>Camille Martin — Employée de librairie, temps partiel</h3><p>Licence de lettres, deuxième année. Disponible le samedi et deux fins d’après-midi par semaine.</p><h4>Formation</h4><p>2025–2026 · Licence de lettres en cours. Travaux de synthèse et présentations orales.</p><h4>Projet associatif</h4><p>Organisation d’une collecte de livres : classement des dons par genre et préparation des lots avec trois bénévoles.</p><h4>Compétences</h4><p>Rédaction de résumés, accueil des participants, utilisation d’un tableur pour suivre les dons.</p></div>
+<h2>Que garder si votre CV paraît vide ?</h2><p>Conservez les activités que vous pouvez expliquer en entretien. Évitez les listes de qualités sans illustration et les niveaux de langue exagérés. Pour une première candidature, consultez aussi le <a href="{{ path('app_cv_sans_experience') }}">guide du CV sans expérience</a>. Pour une période de formation en entreprise, utilisez plutôt le <a href="{{ path('app_cv_stage') }}">CV de stage</a>.</p>
+{% endblock %}
