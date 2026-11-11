@@ -7,7 +7,7 @@ namespace App\Controller;
 use App\Entity\{CvInstances, CvViews, Profiles, Users};
 use App\Form\UnlockType;
 use App\Repository\WorkspaceRepository;
-use App\Service\{CvPresentation, ShareAccess, WorkspaceWriter};
+use App\Service\{CookieConsent, CvPresentation, ShareAccess, WorkspaceWriter};
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\{Request, Response};
@@ -28,6 +28,18 @@ class PublicController extends AbstractController
         return $this->render('home/privacy.html.twig');
     }
 
+    #[Route('/mentions-legales', name: 'app_legal', methods: ['GET'])]
+    public function legal(): Response
+    {
+        return $this->render('home/legal.html.twig');
+    }
+
+    #[Route('/conditions-utilisation', name: 'app_terms', methods: ['GET'])]
+    public function terms(): Response
+    {
+        return $this->render('home/terms.html.twig');
+    }
+
     #[Route('/p/{slug}', name: 'app_public_profile', requirements: ['slug' => '[a-f0-9]{32}'], methods: ['GET'])]
     public function profile(string $slug, WorkspaceRepository $data, CvPresentation $presentation): Response
     {
@@ -37,7 +49,7 @@ class PublicController extends AbstractController
     }
 
     #[Route('/s/{token}', name: 'app_public_share', requirements: ['token' => '[a-f0-9]{64}'], methods: ['GET', 'POST'])]
-    public function share(Request $request, string $token, WorkspaceRepository $data, ShareAccess $access, CvPresentation $presentation, WorkspaceWriter $writer, PasswordHasherFactoryInterface $hashers): Response
+    public function share(Request $request, string $token, WorkspaceRepository $data, ShareAccess $access, CvPresentation $presentation, WorkspaceWriter $writer, PasswordHasherFactoryInterface $hashers, CookieConsent $consent): Response
     {
         $share = $data->share($token) ?? throw $this->createNotFoundException();
         if (!$access->active($share)) {
@@ -61,9 +73,9 @@ class PublicController extends AbstractController
 
             return $this->render('shared/form.html.twig', ['form' => $form, 'title' => 'Ce CV est protégé', 'eyebrow' => 'Accès sur invitation', 'back' => $this->generateUrl('app_home'), 'button' => 'Consulter le CV']);
         }
-        // One consultation per browser session per 24 hours; no IP or browser fingerprint stored.
+        // Optional first-party measurement requires a current, signed analytics choice.
         $viewKey = 'viewed_share_'.$share->getId();
-        if ($request->isMethod('GET') && $session->get($viewKey, 0) < time()) {
+        if ($request->isMethod('GET') && ($consent->preferences($request)['analytics'] ?? false) && $session->get($viewKey, 0) < time()) {
             $writer->save((new CvViews())->setCvShareId($share->getId())->setViewedAt(new \DateTime()));
             $session->set($viewKey, time() + 86400);
         }

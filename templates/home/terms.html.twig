@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}Conditions d’utilisation — PerformCV{% endblock %}
+{% block body %}
+<article class="prose">
+    <h1>Conditions d’utilisation</h1>
+    <p>Mise à jour : {{ legal.updated }}. PerformCV est proposé par {{ legal.name }}, {{ legal.status }}, SIREN {{ legal.siren }}. Ses coordonnées figurent dans les <a href="{{ path('app_legal') }}">mentions légales</a>.</p>
+    <h2>Le service</h2>
+    <p>PerformCV permet de renseigner des profils professionnels, composer des CV, les imprimer en PDF depuis le navigateur et créer des liens de partage. Les fonctionnalités actuellement proposées sont gratuites. Aucune sélection par un recruteur ni compatibilité avec tous les logiciels de recrutement n’est garantie.</p>
+    <h2>Compte et contenus</h2>
+    <p>Gardez votre mot de passe confidentiel et renseignez des informations que vous avez le droit d’utiliser. Ne publiez pas de contenu illicite, trompeur ou portant atteinte aux droits d’autrui. Vous restez titulaire de vos contenus ; leur traitement technique sert à fournir les fonctions que vous demandez.</p>
+    <h2>Utilisateurs mineurs</h2>
+    <p>Le service est également accessible aux personnes mineures qui ont besoin d’un CV. Si tu es mineur, fais-toi accompagner par ton représentant légal lorsque son autorisation est nécessaire. Demande conseil avant de rendre publiques tes coordonnées et ne partage pas d’information sensible inutile à ta candidature.</p>
+    <h2>Visibilité et partage</h2>
+    <p>Un profil est privé au départ. Le rendre public expose ses informations et coordonnées à ses visiteurs et potentiellement aux moteurs de recherche. Un lien actif peut donner accès à un CV même si le profil est privé : choisissez ses rubriques, sa protection et son expiration avant de le diffuser. Les mises à jour du profil modifient les CV associés.</p>
+    <p>Un destinataire peut enregistrer une copie. Révoquer un lien arrête les accès futurs par ce lien sans supprimer les copies déjà enregistrées.</p>
+    <h2>Vos données et la fin d’utilisation</h2>
+    <p>Vous pouvez modifier et supprimer vos ressources ou votre compte depuis l’espace personnel. La <a href="{{ path('app_privacy') }}">politique de confidentialité</a> explique les données utilisées et vos droits. L’enregistrement d’un compte n’emporte aucun consentement au marketing.</p>
+    <h2>Nous contacter</h2>
+    <p>En cas de difficulté ou pour signaler un contenu, écrivez à <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>. Les dispositions légales impératives et vos droits applicables restent préservés.</p>
+</article>
+{% endblock %}

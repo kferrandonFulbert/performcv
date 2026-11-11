@@ -117,6 +117,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .site-footer{
     border-top:1px solid var(--line);
     display:flex;
+    flex-wrap:wrap;
     align-items:center;
     justify-content:space-between;
     gap:20px;
@@ -1368,6 +1369,31 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
         margin:6pt 0 0
     }
 
+}
+.privacy-notice{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.6;
+    margin-bottom:20px
+}
+.cookie-preferences fieldset{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px
+}
+.cookie-preferences label{
+    display:block;
+    margin:12px 0
+}
+.cookie-preferences input[type="checkbox"]{
+    width:auto;
+    margin-right:8px
+}
+.cookie-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin:20px 0
 }
 @media(prefers-reduced-motion:reduce){
     html{
