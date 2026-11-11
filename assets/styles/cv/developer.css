@@ -1,0 +1,6 @@
+.cv-document.theme-developer { --cv-color: #176b63; }
+.theme-developer .cv-header { border-top: 5px solid #176b63; padding-top: 16px; }
+.theme-developer .cv-header h1, .theme-developer .cv-section h2 { font-family: Consolas, monospace; }
+.theme-developer .cv-skills { background: #edf6f3; padding: 16px; border-left: 3px solid #176b63; }
+.theme-developer .cv-projects .cv-entry { border-left: 2px solid #c8ded9; padding-left: 14px; }
+.swatch-developer { border-left: 5px solid #176b63; background: #edf6f3; }

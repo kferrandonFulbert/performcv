@@ -1,0 +1,5 @@
+.cv-document.theme-etudiant { --cv-color: #5c4ab3; }
+.theme-etudiant .cv-header h1 { font-weight: 600; color: #5c4ab3; }
+.theme-etudiant .cv-section h2 { border-left: 4px solid #5c4ab3; padding-left: 12px; }
+.theme-etudiant .cv-educations { border-top: 3px solid #ddd5f6; padding-top: 10px; }
+.swatch-etudiant { border-top: 4px solid #5c4ab3; background: #f5f2fc; }

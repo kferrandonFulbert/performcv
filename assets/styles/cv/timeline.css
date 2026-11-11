@@ -1,0 +1,6 @@
+.cv-document.theme-timeline { --cv-color: #a04a28; }
+.theme-timeline .cv-experiences .cv-entry, .theme-timeline .cv-educations .cv-entry { border-left: 2px solid #d7ab96; padding-left: 24px; position: relative; }
+.theme-timeline .cv-experiences .cv-entry::before, .theme-timeline .cv-educations .cv-entry::before { content: ''; position: absolute; left: -6px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: #a04a28; }
+.theme-timeline .entry-date { font-weight: 700; color: #a04a28; }
+.swatch-timeline { border-left: 3px dotted #a04a28; }
+@media print { .theme-timeline .cv-entry::before { display: none; } }

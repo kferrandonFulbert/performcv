@@ -1,0 +1,5 @@
+.cv-document.theme-moderne { --cv-color: #245aca; }
+.theme-moderne .cv-header { border-bottom: 4px solid var(--cv-color); }
+.theme-moderne .cv-section h2 { color: #245aca; letter-spacing: 1px; }
+.theme-moderne .cv-header h1 { font-weight: 500; }
+.swatch-moderne { border-top: 4px solid #245aca; }

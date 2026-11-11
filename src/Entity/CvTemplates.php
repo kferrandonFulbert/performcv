@@ -8,8 +8,63 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'cv_templates')]
 #[ORM\Entity(repositoryClass: CvTemplatesRepository::class)]
+#[ORM\UniqueConstraint(name: 'uniq_cv_template_slug', columns: ['slug'])]
 class CvTemplates
 {
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $slug = null;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $price = 0;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $is_active = true;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $is_ats_friendly = true;
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+        return $this;
+    }
+    public function getPrice(): int
+    {
+        return $this->price;
+    }
+    public function setPrice(int $price): static
+    {
+        if ($price < 0) { throw new \InvalidArgumentException('Price cannot be negative.'); }
+        $this->price = $price;
+        return $this;
+    }
+    public function isFree(): bool
+    {
+        return $this->price === 0 && $this->is_premium !== 1;
+    }
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+    public function setIsActive(bool $active): static
+    {
+        $this->is_active = $active;
+        return $this;
+    }
+    public function isAtsFriendly(): bool
+    {
+        return $this->is_ats_friendly;
+    }
+    public function setIsAtsFriendly(bool $ats): static
+    {
+        $this->is_ats_friendly = $ats;
+        return $this;
+    }
+
     #[ORM\Column]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "IDENTITY")]

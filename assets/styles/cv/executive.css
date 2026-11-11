@@ -1,0 +1,5 @@
+.cv-document.theme-executive { --cv-color: #233b50; border-top: 10px solid #233b50; }
+.theme-executive .cv-header h1 { font-family: Georgia, serif; font-size: 44px; }
+.theme-executive .cv-section h2 { color: #233b50; font-size: 13px; border-bottom: 2px solid #a68d60; }
+.theme-executive .cv-job { text-transform: uppercase; letter-spacing: 2px; }
+.swatch-executive { border-top: 7px solid #233b50; border-bottom: 2px solid #a68d60; }
