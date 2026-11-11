@@ -1,16 +1,18 @@
-/* PerformCV — warm paper, expressive type, evergreen accents. */
+/* PerformCV - charte du graphiste (performcv-template/src/input.css). */
 :root{
-    --paper:#f5f4ee;
-    --surface:#fffefa;
-    --ink:#183e36;
-    --muted:#64726a;
-    --line:#dce1d7;
-    --accent:#d5ed9b;
+    --paper:#f7f8fa;
+    --surface:#ffffff;
+    --ink:#172b4d;
+    --muted:#526175;
+    --line:#e4e8ef;
+    --accent:#eef3ff;
+    --brand:#315efb;
     --danger:#a43331;
     --radius:12px;
-    font-family:Arial,Helvetica,sans-serif;
+    font-family:Inter,"Segoe UI",Arial,sans-serif;
     color:var(--ink);
     background:var(--paper);
+    -webkit-font-smoothing:antialiased;
     font-synthesis:none
 }
 *{
@@ -39,7 +41,7 @@ button{
     cursor:pointer
 }
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
-    outline:3px solid #678e2c;
+    outline:3px solid #315efb;
     outline-offset:4px
 }
 .site-header,.site-main,.site-footer{
@@ -49,7 +51,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     padding-right:64px
 }
 .site-header{
-    height:112px;
+    height:88px;
+    background:var(--surface);
+    box-shadow:0 0 0 100vmax var(--surface);
+    clip-path:inset(0 -100vmax);
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -65,11 +70,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     letter-spacing:-1.3px
 }
 .brand>span:not(.brand-icon):not(.brand-dot){
-    font-weight:400
+    font-weight:700;
+    color:var(--brand)
 }
 .brand-icon{
-    background:var(--ink);
-    color:var(--accent);
+    background:var(--brand);
+    color:white;
+    transform:rotate(-5deg);
     width:39px;
     height:39px;
     border-radius:9px;
@@ -80,8 +87,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     padding-right:4px;
     font-size:28px
 }
+.brand-icon svg{
+    width:23px;
+    height:27px
+}
 .brand-dot{
-    color:#718b34
+    color:#315efb
 }
 .site-header nav{
     display:flex;
@@ -112,7 +123,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     padding-top:28px;
     padding-bottom:28px;
     font-size:12px;
-    color:var(--muted)
+    color:var(--muted);
+    background:var(--surface)
 }
 .site-footer .brand{
     font-size:22px
@@ -121,9 +133,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     margin:0
 }
 .button{
-    border:1px solid var(--ink);
+    border:1px solid transparent;
     border-radius:7px;
-    background:var(--ink);
+    background:var(--brand);
     color:var(--surface);
     padding:13px 21px;
     display:inline-flex;
@@ -137,16 +149,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     transition:background .15s,transform .15s
 }
 .button:hover{
-    background:#28584c;
+    background:#244ce1;
     transform:translateY(-1px)
 }
 .button.secondary{
     background:transparent;
     color:var(--ink);
-    border-color:#b8c2b7
+    border-color:#dce2ed
 }
 .button.secondary:hover{
-    background:#e8ecdf
+    background:#eef3ff
 }
 .button.small{
     padding:10px 18px
@@ -172,6 +184,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .eyebrow{
     font-size:10px;
     letter-spacing:2px;
+    color:var(--brand);
     font-weight:700;
     line-height:1.8;
     text-transform:uppercase
@@ -193,20 +206,23 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     grid-template-columns:1.1fr 1fr;
     gap:60px;
     align-items:center;
-    padding-top:40px;
-    padding-bottom:80px
+    padding:65px 0 75px;
+    background:linear-gradient(115deg,#fbfcff,#f5f7fc);
+    box-shadow:0 0 0 100vmax #f7f9fd;
+    clip-path:inset(0 -100vmax)
 }
 .hero h1{
-    font-family:Georgia,'Times New Roman',serif;
-    font-size:clamp(45px,5.25vw,76px);
-    font-weight:400;
-    line-height:1.07;
+    font-family:inherit;
+    font-size:clamp(40px,4.25vw,62px);
+    font-weight:750;
+    line-height:1.08;
     letter-spacing:-3px;
     margin:28px 0
 }
 .hero h1 em{
-    font-weight:400;
-    color:#6e804e
+    font-weight:750;
+    font-style:normal;
+    color:#315efb
 }
 .hero .lead{
     max-width:425px;
@@ -220,53 +236,57 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .hero .eyebrow:before{
     content:'';
     display:block;
-    width:22px;
-    height:1px;
-    background:var(--ink)
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--brand)
 }
 .hero-art{
     position:relative;
-    background:#e4e8dc;
-    border-radius:120px 120px 12px 12px;
+    background:radial-gradient(circle,#e7edff 0%,#edf2ff55 62%,transparent 63%);
+    border-radius:50%;
     min-height:560px;
     display:flex;
     align-items:center;
     justify-content:center;
     padding:45px 35px 60px;
-    overflow:hidden
+    overflow:visible
 }
 .hero-art:after{
     content:'';
     position:absolute;
-    width:220px;
-    height:220px;
-    border:1px solid #bec9ae;
+    inset:25px;
+    border:1px dashed #d8e0f6;
     border-radius:50%;
-    right:-95px;
-    bottom:-65px
+    pointer-events:none
 }
 .floating-label{
     position:absolute;
-    right:-5px;
-    top:75px;
-    background:var(--accent);
+    left:10px;
+    top:25px;
+    background:white;
+    border:1px solid var(--line);
+    border-radius:30px;
     font-size:8px;
     letter-spacing:1px;
     padding:10px 16px;
     z-index:2;
-    transform:rotate(5deg)
+    box-shadow:0 5px 15px #172b4d08
 }
 .sample-cv{
     width:320px;
     background:var(--surface);
-    box-shadow:0 20px 50px #233f2520;
+    box-shadow:0 20px 50px #172b4d20;
     padding:32px;
-    transform:rotate(-5deg);
+    transform:rotate(3deg);
+    position:relative;
+    z-index:1;
+    border-top:3px solid var(--brand);
     font-size:9px;
     line-height:1.7
 }
 .sample-cv h2{
-    font:28px Georgia,serif;
+    font:750 28px/1.1 Inter,"Segoe UI",Arial,sans-serif;
     margin:14px 0 3px;
     letter-spacing:-1px
 }
@@ -293,7 +313,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     display:grid;
     place-items:center;
     font-size:12px;
-    background:#e3e9d9;
+    background:#eef3ff;
     border-radius:50%;
     width:34px;
     height:34px
@@ -305,7 +325,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .sample-lines i{
     height:3px;
-    background:#e4e6dd;
+    background:#dfe4ec;
     width:100%
 }
 .sample-lines i:last-child{
@@ -330,10 +350,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .intro-section{
     border-top:1px solid var(--line);
-    padding-top:50px
+    padding-top:60px;
+    padding-bottom:35px
 }
 .intro-section>h2{
-    font:42px/1.15 Georgia,serif;
+    font:700 33px/1.2 Inter,"Segoe UI",Arial,sans-serif;
     letter-spacing:-1px
 }
 .feature-grid{
@@ -344,16 +365,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .feature-grid h3{
     font-size:18px;
-    font-weight:500
+    font-weight:650
 }
 .feature-grid p{
     color:var(--muted);
     font-size:14px
 }
 .step{
-    font-family:Georgia,serif;
-    font-size:32px;
-    color:#778763
+    font-family:inherit;
+    font-size:13px;
+    font-weight:700;
+    color:#315efb
 }
 .home-content{
     margin-top:60px;
@@ -384,18 +406,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     margin:25px 0 45px
 }
 .page-heading h1,.form-layout h1,.prose h1{
-    font-family:Georgia,serif;
-    font-size:48px;
+    font-family:inherit;
+    font-size:38px;
     line-height:1.15;
     letter-spacing:-1.8px;
-    font-weight:400;
+    font-weight:700;
     margin:12px 0
 }
 .page-heading .lead{
     margin:14px 0
 }
 .accent{
-    color:#8da343
+    color:#315efb
 }
 .section-heading{
     display:flex;
@@ -434,14 +456,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     gap:14px
 }
 .profile-number{
-    font:30px Georgia,serif;
-    color:#8a987c
+    font:700 28px/1.2 Inter,"Segoe UI",Arial,sans-serif;
+    color:#315efb
 }
 .badge{
     font-size:10px;
     letter-spacing:.2px;
-    background:#edf0e8;
-    border:1px solid #dfe5d6;
+    background:#f2f4f8;
+    border:1px solid #e1e8ff;
     padding:3px 10px;
     border-radius:20px;
     white-space:nowrap
@@ -450,7 +472,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     background:var(--accent)
 }
 .profile-card h2{
-    font:27px Georgia,serif;
+    font:650 25px/1.2 Inter,"Segoe UI",Arial,sans-serif;
     line-height:1.2;
     margin:24px 0 10px
 }
@@ -487,14 +509,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .empty-state{
     grid-column:1/-1;
-    border:1px dashed #bdc9b3;
+    border:1px dashed #c9d4f3;
     border-radius:var(--radius);
     text-align:center;
     padding:55px 25px;
-    background:#eef0e6
+    background:#f0f3fa
 }
 .empty-state h2{
-    font:30px Georgia,serif
+    font:700 28px/1.2 Inter,"Segoe UI",Arial,sans-serif;
 }
 .empty-state p{
     color:var(--muted);
@@ -535,7 +557,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     padding:35px
 }
 .form-card h2{
-    font:30px Georgia,serif;
+    font:700 28px/1.2 Inter,"Segoe UI",Arial,sans-serif;
     margin-top:0
 }
 .form-card>p{
@@ -553,7 +575,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .form-card input:not([type=checkbox]):not([type=hidden]),.form-card select,.form-card textarea,.share-card input{
     width:100%;
-    border:1px solid #cbd3c6;
+    border:1px solid #c9d1df;
     border-radius:6px;
     background:var(--surface);
     padding:11px 12px;
@@ -561,7 +583,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     min-height:45px
 }
 .form-card input[type=checkbox]{
-    accent-color:var(--ink);
+    accent-color:var(--brand);
     width:18px;
     height:18px;
     vertical-align:middle;
@@ -600,9 +622,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     margin-bottom:6px
 }
 .aside-mark{
-    font:180px/1 Georgia,serif;
+    font:750 180px/1 Inter,"Segoe UI",Arial,sans-serif;
     letter-spacing:-18px;
-    color:#dce4cc;
+    color:#e1e8ff;
     margin-top:45px
 }
 .aside-mark span{
@@ -622,8 +644,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .notice{
     padding:16px 20px;
-    background:#e3edcf;
-    border:1px solid #c9d9b2;
+    background:#e8f6ed;
+    border:1px solid #c6e6d3;
     border-radius:8px;
     margin:0 0 24px;
     font-size:14px
@@ -671,7 +693,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     border-radius:6px
 }
 .section-nav a:hover{
-    background:#e6ebdc
+    background:#eef3ff
 }
 .section-nav a span{
     font-size:11px;
@@ -753,7 +775,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     margin:0
 }
 .document-icon{
-    background:#eef1e4;
+    background:#eef3ff;
     padding:9px 15px;
     border-radius:5px;
     font-size:24px
@@ -786,14 +808,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     align-items:start
 }
 .preview-wrap{
-    background:#e5e7de;
+    background:#e9edf3;
     padding:22px;
     border-radius:var(--radius)
 }
 .cv-document{
-    --cv-color:#183e36;
+    --cv-color:#315efb;
     background:white;
-    color:#29372f;
+    color:#25344a;
     max-width:820px;
     min-height:1000px;
     margin:0 auto;
@@ -807,7 +829,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     margin-bottom:28px
 }
 .cv-header h1{
-    font:43px/1.1 Georgia,serif;
+    font:750 43px/1.1 Inter,"Segoe UI",Arial,sans-serif;
     color:var(--cv-color);
     margin:15px 0;
     letter-spacing:-1.5px
@@ -821,7 +843,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     gap:7px 15px;
     flex-wrap:wrap;
     font-size:10px;
-    color:#596b60
+    color:#66748a
 }
 .cv-contact a{
     color:var(--cv-color)
@@ -835,7 +857,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     letter-spacing:2px;
     text-transform:uppercase;
     color:var(--cv-color);
-    border-bottom:1px solid #dfe4dd;
+    border-bottom:1px solid #e4e8ef;
     padding-bottom:9px;
     margin-bottom:18px;
     break-after:avoid
@@ -883,7 +905,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     justify-content:center
 }
 .layout-atelier .cv-section h2{
-    font:20px Georgia,serif;
+    font:650 20px/1.2 Inter,"Segoe UI",Arial,sans-serif;
     text-transform:none;
     letter-spacing:0
 }
@@ -908,7 +930,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     overflow-wrap:anywhere
 }
 .share-panel>h2{
-    font:25px Georgia,serif
+    font:650 25px/1.2 Inter,"Segoe UI",Arial,sans-serif
 }
 .share-panel>p:not(.eyebrow){
     font-size:12px;
@@ -938,7 +960,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     color:var(--muted)
 }
 .share-card .view-count{
-    font:25px Georgia,serif;
+    font:650 23px/1.2 Inter,"Segoe UI",Arial,sans-serif;
     color:var(--ink);
     margin:12px 0
 }
@@ -963,7 +985,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     margin:40px auto
 }
 .prose h2{
-    font:27px Georgia,serif;
+    font:650 25px/1.2 Inter,"Segoe UI",Arial,sans-serif;
     margin-top:35px
 }
 .prose p{
@@ -1156,7 +1178,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
         flex-shrink:0;
         gap:10px;
         padding:8px 10px;
-        background:#e7ecdd
+        background:#eef3ff
     }
     .section-panel{
         padding:20px
