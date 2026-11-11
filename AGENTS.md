@@ -66,6 +66,8 @@ Ne pas imposer un seul profil par utilisateur, un seul CV par profil ou un seul 
 
 ## Organisation des développements
 
+- `GuideController` et `templates/guides/` portent huit pages publiques éditoriales à routes explicites, liées depuis l’accueil. `PublicSeo` autorise leurs canoniques et leur présence au sitemap. La page de lettre de motivation fournit un exemple à personnaliser ; aucun générateur de lettres n’est implémenté.
+
 - `src/Entity/` : modèle persistant et mapping ; `src/Repository/WorkspaceRepository.php` : lectures métier. Les repositories par entité restent principalement des squelettes de `ServiceEntityRepository`.
 - `src/Controller/`, `src/Form/`, `src/Service/`, `src/Security/` : parcours HTTP, formulaires, services métier et voter de propriété. Les suppressions passent par les transactions de `WorkspaceWriter`.
 - `config/` : configuration de l'application ; `migrations/` : évolutions versionnées du schéma ; `tests/` : vérifications automatisées.

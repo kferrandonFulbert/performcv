@@ -6,6 +6,22 @@ document.addEventListener('submit', (event) => {
     if (message && !window.confirm(message)) event.preventDefault();
 });
 
+// Native disclosure stays usable without JavaScript; add dismissal shortcuts.
+document.querySelectorAll('.advice-menu').forEach((menu) => {
+    document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target)) menu.open = false;
+    });
+    menu.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && menu.open) {
+            menu.open = false;
+            menu.querySelector('summary').focus();
+        }
+    });
+    menu.addEventListener('focusout', (event) => {
+        if (!menu.contains(event.relatedTarget)) menu.open = false;
+    });
+});
+
 // Preview the submitted form without saving it; keep the ordinary POST fallback.
 document.querySelectorAll('[data-cv-editor]').forEach((form) => {
     const status = document.querySelector('[data-preview-status]');

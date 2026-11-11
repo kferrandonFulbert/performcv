@@ -53,13 +53,24 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .site-header{
     height:88px;
     background:var(--surface);
-    box-shadow:0 0 0 100vmax var(--surface);
-    clip-path:inset(0 -100vmax);
+    position:relative;
+    z-index:40;
     display:flex;
     align-items:center;
     justify-content:space-between;
     border-bottom:1px solid var(--line);
     gap:24px
+}
+/* Extend only the header background; keep dropdowns outside its height visible. */
+.site-header::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    background:var(--surface);
+    box-shadow:0 0 0 100vmax var(--surface);
+    clip-path:inset(0 -100vmax);
+    pointer-events:none
 }
 .brand{
     display:inline-flex;
@@ -106,6 +117,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .site-header nav>a[aria-current]{
     text-decoration:underline
 }
+.advice-menu{position:relative;font-size:14px}
+.advice-menu summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;padding:10px 0}
+.advice-menu summary::-webkit-details-marker{display:none}
+.advice-menu summary:focus-visible,.advice-menu a:focus-visible{outline:2px solid currentColor;outline-offset:4px}
+.advice-menu[open] .advice-chevron{transform:rotate(180deg)}
+.advice-menu ul{position:absolute;right:0;top:100%;z-index:30;width:290px;max-width:calc(100vw - 40px);max-height:65vh;overflow-y:auto;margin:0;padding:8px;list-style:none;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px #00000014}
+.advice-menu li a{display:block;padding:10px 12px;line-height:1.4;border-radius:6px;text-decoration:none}
+.advice-menu li a:hover,.advice-menu li a[aria-current]{background:#f3f4f2}
 .site-header form{
     margin:0
 }
@@ -1077,6 +1096,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
         gap:16px;
         flex-wrap:wrap
     }
+    .advice-menu{position:static;font-size:11px}
+    .advice-menu ul{left:20px;right:20px;width:auto;max-width:none}
     .site-header nav>a:not(.button),.site-header .link{
         font-size:11px
     }
@@ -1370,6 +1391,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     }
 
 }
+.guide-content h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.15;max-width:24ch}
+.guide-content h2{margin-top:2rem}
+.guide-content p,.guide-content li{line-height:1.8}
+.guide-example{border-left:4px solid var(--line);padding:1rem 1.5rem;margin:1.5rem 0;background:var(--paper,#faf9f6)}
+.guide-example h3,.guide-example h4{margin-top:1rem}
+.guide-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:1rem 2rem;padding-left:1.25rem}
 .privacy-notice{
     color:var(--muted);
     font-size:13px;

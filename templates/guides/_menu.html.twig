@@ -1,0 +1,18 @@
+{% set advice_links = {
+    'app_cv_etudiant': 'CV étudiant',
+    'app_cv_alternance': 'CV alternance',
+    'app_cv_stage': 'CV stage',
+    'app_cv_developpeur_web': 'CV développeur web',
+    'app_cv_sans_experience': 'CV sans expérience',
+    'app_cv_ats': 'CV ATS',
+    'app_cv_bts_sio': 'Exemple CV BTS SIO',
+    'app_lettre_alternance': 'Lettre de motivation alternance'
+} %}
+<details class="advice-menu">
+    <summary>Conseils CV <span class="advice-chevron" aria-hidden="true">⌄</span></summary>
+    <ul>
+        {% for route, label in advice_links %}
+            <li><a href="{{ path(route) }}"{% if app.request.attributes.get('_route') == route %} aria-current="page"{% endif %}>{{ label }}</a></li>
+        {% endfor %}
+    </ul>
+</details>
