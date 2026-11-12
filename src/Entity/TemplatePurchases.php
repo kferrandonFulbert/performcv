@@ -17,10 +17,12 @@ class TemplatePurchases
 {
     #[ORM\Id, ORM\GeneratedValue(strategy: 'IDENTITY'), ORM\Column]
     private ?int $id = null;
-    #[ORM\Column]
-    private int $user_id;
-    #[ORM\Column]
-    private int $template_id;
+    #[ORM\ManyToOne(targetEntity: Users::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_template_purchases_user_id')]
+    private ?Users $user = null;
+    #[ORM\ManyToOne(targetEntity: CvTemplates::class)]
+    #[ORM\JoinColumn(name: 'template_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_template_purchases_template_id')]
+    private ?CvTemplates $template = null;
     #[ORM\Column]
     private int $amount;
     #[ORM\Column(length: 3)]
@@ -34,10 +36,10 @@ class TemplatePurchases
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $purchased_at = null;
 
-    public function __construct(int $userId, int $templateId, int $amount)
+    public function __construct(Users $user, CvTemplates $template, int $amount)
     {
-        $this->user_id = $userId;
-        $this->template_id = $templateId;
+        $this->user = $user;
+        $this->template = $template;
         $this->amount = $amount;
         $this->created_at = new \DateTime();
     }
@@ -45,13 +47,23 @@ class TemplatePurchases
     {
         return $this->id;
     }
-    public function getUserId(): int
+    public function getUser(): ?Users
     {
-        return $this->user_id;
+        return $this->user;
     }
-    public function getTemplateId(): int
+
+    public function getUserId(): ?int
     {
-        return $this->template_id;
+        return $this->user?->getId();
+    }
+    public function getTemplate(): ?CvTemplates
+    {
+        return $this->template;
+    }
+
+    public function getTemplateId(): ?int
+    {
+        return $this->template?->getId();
     }
     public function getAmount(): int
     {

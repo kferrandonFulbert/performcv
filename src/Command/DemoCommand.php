@@ -44,7 +44,7 @@ class DemoCommand extends Command
             $user->setPasswordHash($this->hasher->hashPassword($user, 'Demo-performcv-2026'));
             $this->em->persist($user);
             $this->em->flush();
-            $profile = (new Profiles())->setUserId($user->getId())->setTitle('Designer produit & expériences numériques')->setLocation('Lyon, France')
+            $profile = (new Profiles())->setUser($user)->setTitle('Designer produit & expériences numériques')->setLocation('Lyon, France')
                 ->setSummary('Je transforme les besoins des utilisateurs en expériences simples et accessibles. Mon fil conducteur : conjuguer recherche, créativité et attention aux détails.')
                 ->setSlug(bin2hex(random_bytes(16)));
             $this->em->persist($profile);
@@ -52,14 +52,14 @@ class DemoCommand extends Command
             $this->em->persist($skill);
             $this->em->flush();
             foreach ([
-                (new Experiences())->setProfileId($profile->getId())->setCompanyName('Atelier Exemple')->setPosition('Product designer')->setStartDate(new \DateTime('2022-09-01'))->setIsCurrent(1)->setOrderIndex(0)->setDescription('Conception de services numériques, entretiens utilisateurs et prototypage. Collaboration avec les équipes de développement pour des interfaces accessibles.'),
-                (new Educations())->setProfileId($profile->getId())->setInstitution('École de design — Exemple')->setDegree('Master Design numérique')->setStartDate(new \DateTime('2018-09-01'))->setEndDate(new \DateTime('2020-06-30'))->setOrderIndex(0),
-                (new Certifications())->setProfileId($profile->getId())->setName('Accessibilité numérique')->setIssuingOrganization('Organisme de démonstration')->setIssueDate(new \DateTime('2024-03-01')),
-                (new Projects())->setProfileId($profile->getId())->setTitle('Un service public plus accessible')->setDescription('Refonte fictive d’un parcours de prise de rendez-vous : recherche, simplification et tests utilisateurs.')->setTechnologiesUsed('Figma, recherche utilisateur, design system')->setOrderIndex(0),
-                (new Languages())->setProfileId($profile->getId())->setLanguage('Français')->setLevel('Natif'),
-                (new Languages())->setProfileId($profile->getId())->setLanguage('Anglais')->setLevel('C1'),
-                (new ProfileSkills())->setProfileId($profile->getId())->setSkillId($skill->getId())->setLevel('Expert')->setYearsExperience(6),
-                (new CvInstances())->setProfileId($profile->getId())->setTemplateId($template->getId())->setColorScheme('emerald')->setFontFamily('sans')->setCreatedAt(new \DateTime())->setUpdatedAt(new \DateTime()),
+                (new Experiences())->setProfile($profile)->setCompanyName('Atelier Exemple')->setPosition('Product designer')->setStartDate(new \DateTime('2022-09-01'))->setIsCurrent(1)->setOrderIndex(0)->setDescription('Conception de services numériques, entretiens utilisateurs et prototypage. Collaboration avec les équipes de développement pour des interfaces accessibles.'),
+                (new Educations())->setProfile($profile)->setInstitution('École de design — Exemple')->setDegree('Master Design numérique')->setStartDate(new \DateTime('2018-09-01'))->setEndDate(new \DateTime('2020-06-30'))->setOrderIndex(0),
+                (new Certifications())->setProfile($profile)->setName('Accessibilité numérique')->setIssuingOrganization('Organisme de démonstration')->setIssueDate(new \DateTime('2024-03-01')),
+                (new Projects())->setProfile($profile)->setTitle('Un service public plus accessible')->setDescription('Refonte fictive d’un parcours de prise de rendez-vous : recherche, simplification et tests utilisateurs.')->setTechnologiesUsed('Figma, recherche utilisateur, design system')->setOrderIndex(0),
+                (new Languages())->setProfile($profile)->setLanguage('Français')->setLevel('Natif'),
+                (new Languages())->setProfile($profile)->setLanguage('Anglais')->setLevel('C1'),
+                (new ProfileSkills())->setProfile($profile)->setSkill($skill)->setLevel('Expert')->setYearsExperience(6),
+                (new CvInstances())->setProfile($profile)->setTemplate($template)->setColorScheme('emerald')->setFontFamily('sans')->setCreatedAt(new \DateTime())->setUpdatedAt(new \DateTime()),
             ] as $entity) {
                 $this->em->persist($entity);
             }

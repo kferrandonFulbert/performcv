@@ -21,14 +21,14 @@ Le parcours métier suggéré par les données est : compte utilisateur → prof
 - Twig, AssetMapper et Importmap ; Stimulus et Turbo. Conserver ce socle pour les développements frontend ordinaires.
 - PHPUnit `^9.6.38` et Symfony PHPUnit Bridge ; configuration dans `phpunit.xml.dist`.
 - Namespace applicatif `App\`, tests `App\Tests\` ; autoload PSR-4.
-- Connexion à la base via `DATABASE_URL`. Ne pas déduire le moteur réellement utilisé des seuls exemples de configuration.
+- Connexion à la base via `DATABASE_URL`. Le développement et la production utilisent MySQL avec InnoDB ; le mode local isolé et les tests par défaut utilisent SQLite.
 - `bin/local-console` et `public/local.php` proposent un mode local isolé avec SQLite dans `.runtime/`. Les tests imposent une autre base dédiée et les caches sont séparés par version PHP. Les objets paresseux natifs sont activés dans `config/packages/doctrine.yaml` pour PHP 8.5.
 
 Ne pas ajouter un framework frontend, une chaîne Node, une dépendance ou une montée de version sans nécessité liée à la tâche.
 
 ## Carte du domaine
 
-Toutes les entités ont un identifiant `id` entier généré. Les liens indiqués sont des relations métier déduites des champs, sans associations ORM déclarées actuellement.
+Toutes les entités ont un identifiant `id` entier généré. Les liens indiqués sont des associations ORM `ManyToOne` unidirectionnelles obligatoires, avec colonnes SQL `*_id` conservées.
 
 | Entité | Rôle et données principales | Liens métier |
 | --- | --- | --- |
@@ -52,11 +52,11 @@ Ne pas imposer un seul profil par utilisateur, un seul CV par profil ou un seul 
 ## Particularités du modèle à préserver
 
 - Les classes sont au pluriel (`Users`, `Profiles`, etc.), les propriétés en `snake_case`, les accesseurs en camelCase et les setters renvoient `static`. Respecter les noms et signatures existants lors d'une intervention ciblée.
-- Les champs `user_id`, `profile_id`, `skill_id`, `template_id`, `cv_instance_id` et `cv_share_id` sont des scalaires. Ne pas appeler d'accesseurs d'association inexistants et ne pas supposer de chargement automatique, de cascade ou de suppression en cascade.
-- Un index sur un identifiant ne démontre pas une contrainte de clé étrangère en base. Vérifier le schéma réel avant de s'appuyer sur son intégrité référentielle.
+- Les propriétés `user`, `profile`, `skill`, `template`, `cv_instance` et `cv_share` portent des associations `ManyToOne` unidirectionnelles, chargées paresseusement. Les setters reçoivent les entités ; les getters `get*Id()` calculent l'identifiant depuis l'association sans champ scalaire dupliqué. Les critères et DQL utilisent les noms d'association, le SQL brut conserve les colonnes `*_id`. Aucune cascade ORM ni collection inverse n'est ajoutée.
+- La migration `Version20261112000100` ajoute les 14 clés étrangères restrictives du mapping après vérification des orphelins. Vérifier son application avant de supposer ces garanties. Les suppressions restent explicites et transactionnelles dans `WorkspaceWriter`. Voir `docs/associations-doctrine.md`.
 - Une conversion vers des associations ORM constitue une évolution explicite du modèle : examiner les appels existants, le mapping, les migrations et les tests concernés.
 - Unicités déclarées : `Users.email`, `Profiles.slug`, `CvShares.share_token`. Aucune unicité composite n'est déclarée sur `ProfileSkills`.
-- Le catalogue ajoute `CvTemplates.slug` unique nullable. `TemplatePurchases` impose l'unicité du couple compte/modèle et des identifiants Stripe ; ses liens restent scalaires. `purchased_at` doit être renseigné pour accorder le droit d'utilisation.
+- Le catalogue ajoute `CvTemplates.slug` unique nullable. `TemplatePurchases` impose l'unicité du couple compte/modèle et des identifiants Stripe ; ses liens sont des associations obligatoires vers `Users` et `CvTemplates`. `purchased_at` doit être renseigné pour accorder le droit d'utilisation.
 - Plusieurs propriétés PHP sont initialisées à `null` alors que leur colonne est obligatoire. Lire les attributs `ORM\Column` et les signatures des setters ; un getter nullable ne rend pas la valeur facultative à l'enregistrement.
 - Les indicateurs `is_public`, `is_current`, `password_protected`, `is_premium` sont actuellement des entiers nullables. Préserver leur contrat ; définir explicitement le traitement de `null` dans les nouveaux parcours.
 - `Profiles.is_public` vaut initialement `0`, `CvShares.is_public` vaut initialement `1`. Ce sont deux niveaux de visibilité distincts ; ne pas déduire une politique d'accès de ces seuls défauts.
@@ -91,7 +91,7 @@ Ces règles guident les implémentations ; les simples getters et setters ne suf
 
 ## Authentification, partage et données personnelles
 
-État actuel : `Users` implémente les interfaces Symfony Security, avec un fournisseur Doctrine par email et le rôle fixe `ROLE_USER`. Le pare-feu utilise `form_login`, protège connexion et déconnexion par CSRF, et réserve `/app` aux comptes connectés. `ProfileVoter` contrôle la propriété ; les contrôleurs vérifient les relations scalaires avant l'accès aux ressources liées. La session sérialise une empreinte CRC32C du hash de mot de passe pour permettre son invalidation sans stocker le hash complet.
+État actuel : `Users` implémente les interfaces Symfony Security, avec un fournisseur Doctrine par email et le rôle fixe `ROLE_USER`. Le pare-feu utilise `form_login`, protège connexion et déconnexion par CSRF, et réserve `/app` aux comptes connectés. `ProfileVoter` contrôle la propriété ; les contrôleurs vérifient les associations et la propriété avant l'accès aux ressources liées. La session sérialise une empreinte CRC32C du hash de mot de passe pour permettre son invalidation sans stocker le hash complet.
 
 La limitation des tentatives utilise un subscriber et des fichiers verrouillés par IP (empreinte dans le nom), sur un seul hôte. Ne pas la considérer comme distribuée. Le partage protégé est déverrouillé pour une heure et son état est revérifié à chaque accès. Les sections masquées sont exclues des lectures du rendu. Les données HTML/CSS libres sont ignorées par les présentations internes.
 

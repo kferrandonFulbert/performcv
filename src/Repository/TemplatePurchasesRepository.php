@@ -18,13 +18,13 @@ class TemplatePurchasesRepository extends ServiceEntityRepository
     public function hasPurchase(int $userId, int $templateId): bool
     {
         return $this->createQueryBuilder('p')->select('p.id')
-            ->where('p.user_id = :user AND p.template_id = :template AND p.purchased_at IS NOT NULL')
+            ->where('p.user = :user AND p.template = :template AND p.purchased_at IS NOT NULL')
             ->setParameter('user', $userId)->setParameter('template', $templateId)
             ->setMaxResults(1)->getQuery()->getOneOrNullResult() !== null;
     }
 
     public function pending(int $userId, int $templateId): ?TemplatePurchases
     {
-        return $this->findOneBy(['user_id' => $userId, 'template_id' => $templateId, 'purchased_at' => null]);
+        return $this->findOneBy(['user' => $userId, 'template' => $templateId, 'purchased_at' => null]);
     }
 }

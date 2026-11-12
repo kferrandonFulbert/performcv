@@ -21,13 +21,13 @@ class WorkspaceRepository
 
     public function profiles(int $userId, int $page): array
     {
-        return $this->em->getRepository(Profiles::class)->findBy(['user_id' => $userId], ['id' => 'DESC'], 21, ($page - 1) * 20);
+        return $this->em->getRepository(Profiles::class)->findBy(['user' => $userId], ['id' => 'DESC'], 21, ($page - 1) * 20);
     }
 
     public function section(string $key, int $profileId): array
     {
         $definition = SectionCatalog::SECTIONS[$key];
-        $qb = $this->em->createQueryBuilder()->select('e')->from($definition['class'], 'e')->where('e.profile_id = :id')->setParameter('id', $profileId)->setMaxResults(100);
+        $qb = $this->em->createQueryBuilder()->select('e')->from($definition['class'], 'e')->where('e.profile = :id')->setParameter('id', $profileId)->setMaxResults(100);
         if ($definition['ordered']) {
             $qb->addSelect('CASE WHEN e.order_index IS NULL THEN 1 ELSE 0 END AS HIDDEN missing_order')->orderBy('missing_order', \SortDirection::Ascending)->addOrderBy('e.order_index', \SortDirection::Ascending);
         }
@@ -78,12 +78,12 @@ class WorkspaceRepository
 
     public function cvs(int $profileId): array
     {
-        return $this->em->getRepository(CvInstances::class)->findBy(['profile_id' => $profileId], ['id' => 'DESC'], 50);
+        return $this->em->getRepository(CvInstances::class)->findBy(['profile' => $profileId], ['id' => 'DESC'], 50);
     }
 
     public function shares(int $cvId): array
     {
-        return $this->em->getRepository(CvShares::class)->findBy(['cv_instance_id' => $cvId], ['id' => 'DESC'], 20);
+        return $this->em->getRepository(CvShares::class)->findBy(['cv_instance' => $cvId], ['id' => 'DESC'], 20);
     }
 
     public function templates(): array
@@ -114,9 +114,9 @@ class WorkspaceRepository
         if (!$shares) {
             return [];
         }
-        $rows = $this->em->createQueryBuilder()->select('v.cv_share_id AS share_id, COUNT(v.id) AS total')->from(CvViews::class, 'v')
-            ->where('v.cv_share_id IN (:ids)')->setParameter('ids', array_map(static fn (CvShares $share): ?int => $share->getId(), $shares))
-            ->groupBy('v.cv_share_id')->getQuery()->getArrayResult();
+        $rows = $this->em->createQueryBuilder()->select('IDENTITY(v.cv_share) AS share_id, COUNT(v.id) AS total')->from(CvViews::class, 'v')
+            ->where('v.cv_share IN (:ids)')->setParameter('ids', array_map(static fn (CvShares $share): ?int => $share->getId(), $shares))
+            ->groupBy('v.cv_share')->getQuery()->getArrayResult();
 
         return array_column($rows, 'total', 'share_id');
     }

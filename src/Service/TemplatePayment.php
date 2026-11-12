@@ -33,7 +33,7 @@ class TemplatePayment
             }
             if (($session['status'] ?? '') !== 'expired') { throw new \UnexpectedValueException('Unexpected Checkout state.'); }
         }
-        $purchase = $pending ?? new TemplatePurchases($user->getId(), $template->getId(), $template->getPrice());
+        $purchase = $pending ?? new TemplatePurchases($user, $template, $template->getPrice());
         $this->em->persist($purchase);
         $this->em->flush();
         $session = $this->stripe->create([

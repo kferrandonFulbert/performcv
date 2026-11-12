@@ -42,3 +42,7 @@ services:
             $secretKey: '%env(STRIPE_SECRET_KEY)%'
             $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
     # please note that last definitions always *replace* previous ones
+
+    App\Doctrine\SQLiteForeignKeysMiddleware:
+        tags:
+            - { name: doctrine.middleware, priority: 100 }

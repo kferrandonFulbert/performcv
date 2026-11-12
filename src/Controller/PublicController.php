@@ -55,8 +55,8 @@ class PublicController extends AbstractController
         if (!$access->active($share)) {
             throw $this->createNotFoundException('Ce lien n’est plus disponible.');
         }
-        $cv = $data->find(CvInstances::class, $share->getCvInstanceId()) ?? throw $this->createNotFoundException();
-        $profile = $data->find(Profiles::class, $cv->getProfileId()) ?? throw $this->createNotFoundException();
+        $cv = $share->getCvInstance() ?? throw $this->createNotFoundException();
+        $profile = $cv->getProfile() ?? throw $this->createNotFoundException();
         $session = $request->getSession();
         $key = $access->sessionKey($share);
         if ($access->needsPassword($share) && $session->get($key, 0) < time()) {
@@ -76,7 +76,7 @@ class PublicController extends AbstractController
         // Optional first-party measurement requires a current, signed analytics choice.
         $viewKey = 'viewed_share_'.$share->getId();
         if ($request->isMethod('GET') && ($consent->preferences($request)['analytics'] ?? false) && $session->get($viewKey, 0) < time()) {
-            $writer->save((new CvViews())->setCvShareId($share->getId())->setViewedAt(new \DateTime()));
+            $writer->save((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime()));
             $session->set($viewKey, time() + 86400);
         }
         $response = $this->render('cv/public.html.twig', $presentation->build($profile, $cv));

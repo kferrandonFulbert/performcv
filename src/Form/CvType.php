@@ -19,11 +19,13 @@ class CvType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $choices = [];
-        foreach ($options['templates'] as $template) {
-            $choices[$template->getName()] = $template->getId();
-        }
-        $builder->add('templateId', ChoiceType::class, ['label' => 'Présentation', 'choices' => $choices])
+        $builder->add('templateId', ChoiceType::class, [
+            'label' => 'Présentation',
+            'property_path' => 'template',
+            'choices' => $options['templates'],
+            'choice_value' => 'id',
+            'choice_label' => 'name',
+        ])
             ->add('colorScheme', ChoiceType::class, ['label' => 'Palette', 'choices' => self::COLORS])
             ->add('fontFamily', ChoiceType::class, ['label' => 'Typographie', 'choices' => self::FONTS]);
         $cv = $builder->getData();

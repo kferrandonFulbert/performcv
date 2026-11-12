@@ -29,7 +29,7 @@ class CvController extends AbstractController
         if (count($this->data->cvs($profileId)) >= 50) {
             throw $this->createAccessDeniedException('La limite de 50 CV par profil est atteinte.');
         }
-        $cv = (new CvInstances())->setProfileId($profileId)->setColorScheme('ink')->setFontFamily('sans')->setCreatedAt(new \DateTime());
+        $cv = (new CvInstances())->setProfile($profile)->setColorScheme('ink')->setFontFamily('sans')->setCreatedAt(new \DateTime());
 
         return $this->editCv($request, $cv, $profile);
     }
@@ -69,7 +69,7 @@ class CvController extends AbstractController
         if (count($this->data->shares($id)) >= 20) {
             throw $this->createAccessDeniedException('La limite de 20 liens par CV est atteinte.');
         }
-        $share = (new CvShares())->setCvInstanceId($id)->setShareToken(bin2hex(random_bytes(32)))->setCreatedAt(new \DateTime());
+        $share = (new CvShares())->setCvInstance($cv)->setShareToken(bin2hex(random_bytes(32)))->setCreatedAt(new \DateTime());
         $form = $this->createForm(ShareType::class, $share)->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $password = $form->get('password')->getData();
@@ -121,11 +121,11 @@ class CvController extends AbstractController
             if ($preview) {
                 return $this->render($request->isXmlHttpRequest() ? 'cv/preview.html.twig' : 'cv/preview-page.html.twig', $this->presentation->build($profile, $working, true));
             }
-            $template = $this->data->find(CvTemplates::class, $working->getTemplateId());
+            $template = $working->getTemplate();
             if (!$template || !$template->isActive() || !$this->templateAccess->allowed($template, $profile->getUserId())) {
                 $form->get('templateId')->addError(new FormError('Achetez ce modèle pour l’utiliser. Vous pouvez le prévisualiser gratuitement.'));
             } else {
-                $cv->setTemplateId($working->getTemplateId())->setColorScheme($working->getColorScheme())
+                $cv->setTemplate($working->getTemplate())->setColorScheme($working->getColorScheme())
                     ->setFontFamily($working->getFontFamily())->setSectionsVisibility($working->getSectionsVisibility())
                     ->setUpdatedAt(new \DateTime());
                 $this->writer->save($cv);
@@ -139,7 +139,7 @@ class CvController extends AbstractController
         $rights = [];
         foreach ($templates as $template) { $rights[$template->getId()] = $this->templateAccess->allowed($template, $profile->getUserId()); }
         $initial = clone $working;
-        if (!$initial->getTemplateId()) { $initial->setTemplateId($templates[0]->getId()); }
+        if (!$initial->getTemplateId()) { $initial->setTemplate($templates[0]); }
         return $this->render('cv/editor.html.twig', $this->presentation->build($profile, $initial, true) + [
             'form' => $form, 'cv' => $cv, 'templates' => $templates, 'template_rights' => $rights, 'payments_ready' => $this->stripe->ready(),
         ], new Response(status: $form->isSubmitted() && !$form->isValid() ? 422 : 200));
@@ -148,7 +148,7 @@ class CvController extends AbstractController
     private function ownedCv(int $id): array
     {
         $cv = $this->data->find(CvInstances::class, $id) ?? throw $this->createNotFoundException();
-        $profile = $this->data->find(Profiles::class, $cv->getProfileId()) ?? throw $this->createNotFoundException();
+        $profile = $cv->getProfile() ?? throw $this->createNotFoundException();
         $this->denyAccessUnlessGranted('PROFILE_EDIT', $profile);
 
         return [$cv, $profile];
