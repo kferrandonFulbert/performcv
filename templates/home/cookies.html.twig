@@ -1,33 +1,15 @@
 {% extends 'base.html.twig' %}
-{% block title %}Cookies et choix de confidentialité — PerformCV{% endblock %}
-{% block description %}<meta name="description" content="Choisissez les cookies facultatifs de statistiques et de marketing sur PerformCV, ou refusez-les. Vous pouvez modifier votre choix à tout moment.">{% endblock %}
+{% block title %}Cookies et confidentialité — PerformCV{% endblock %}
+{% block description %}<meta name="description" content="Informations sur les cookies nécessaires et le compteur anonyme de consultations des CV sur PerformCV.">{% endblock %}
 {% block body %}
 <article class="prose">
-    <p class="eyebrow">VOS CHOIX</p>
+    <p class="eyebrow">CONFIDENTIALITÉ</p>
     <h1>Cookies et traceurs</h1>
-    <p>Les cookies nécessaires permettent la connexion, la protection des formulaires et l’accès temporaire aux CV protégés. Ils ne servent pas à la publicité et ne peuvent pas être désactivés ici.</p>
-    <p>Le compteur interne de consultations des CV est facultatif : il n’est utilisé qu’avec votre accord. Il enregistre l’identifiant du lien et la date de visite, sans IP, user-agent ni référent. Le propriétaire du CV peut voir le nombre de consultations. Un repère de session limite le comptage à une visite par lien sur 24 heures.</p>
-    <p>Google Analytics 4 (GA4), géré avec Google Tag Manager, est l’outil envisagé pour les statistiques de fréquentation et l’analyse marketing. Son chargement reste désactivé, même si vous enregistrez un accord ci-dessous. Une information complète et un nouveau choix seront présentés avant une éventuelle activation.</p>
-    <p>Le service reste accessible aux mineurs sans ce compteur facultatif. Aucun accord enregistré sur cette page ne vaut autorisation parentale.</p>
-    {% if error|default(null) %}<p role="alert">{{ error }}</p>{% endif %}
-    {% if preferences is not null %}<p role="status">Votre choix est enregistré : statistiques {{ preferences.analytics ? 'acceptées' : 'refusées' }}, marketing {{ preferences.marketing ? 'accepté' : 'refusé' }}. Vous pouvez le modifier ci-dessous.</p>{% endif %}
-    <form method="post" action="{{ path('app_cookies') }}" class="cookie-preferences">
-        <input type="hidden" name="_token" value="{{ csrf_token('cookie_preferences') }}">
-        <fieldset>
-            <legend>Finalités facultatives</legend>
-            <label><input type="checkbox" name="analytics" value="1" {% if preferences and preferences.analytics %}checked{% endif %}> Statistiques internes : autoriser le compteur de consultations des CV.</label>
-            <label><input type="checkbox" name="marketing" value="1" disabled> Marketing : désactivé, aucun accord n’est recueilli pour cette finalité.</label>
-            <label><input type="checkbox" name="adult" value="1"> Je confirme avoir 18 ans ou plus (nécessaire uniquement pour accepter le compteur facultatif).</label>
-        </fieldset>
-        <div class="cookie-actions">
-            <button class="button" type="submit" name="choice" value="refuse">Tout refuser</button>
-            <button class="button" type="submit" name="choice" value="accept">Tout accepter</button>
-            <button class="button secondary" type="submit" name="choice" value="save">Enregistrer mes choix</button>
-        </div>
-    </form>
-    <h2>Durée et modification de votre choix</h2>
-    <p>Le cookie nécessaire <code>performcv_consent</code> mémorise vos préférences et la date du choix pendant six mois, que vous acceptiez ou refusiez. Il ne contient ni votre nom, ni votre email, ni votre date de naissance et ne sert pas à vous suivre entre différents sites. Une acceptation du compteur implique la déclaration de majorité ci-dessus.</p>
-    <p>Le lien « Gérer mes cookies », présent en bas de chaque page, vous permet de modifier ou de retirer votre accord aussi facilement que vous l’avez donné. Le refus ne bloque pas l’utilisation de PerformCV. La suppression du cookie ou un changement de navigateur entraîne une nouvelle demande de choix.</p>
+    <p>Les cookies nécessaires permettent la connexion, la protection des formulaires et l’accès temporaire aux CV protégés. Ils ne servent pas à la publicité.</p>
+    <p>Le compteur anonyme de consultations des CV fonctionne côté serveur, sans cookie de mesure ni repère de comptage en session. Il enregistre uniquement l’identifiant du lien et la date de consultation, sans IP, user-agent, référent ni identifiant du visiteur. Le propriétaire voit le nombre d’affichages du CV, pas l’identité des visiteurs.</p>
+    <p>Chaque affichage réussi par un lien de partage est compté, y compris les rechargements. Ce nombre ne représente pas des visiteurs uniques. Aucune acceptation ni déclaration de majorité n’est demandée pour ce compteur.</p>
+    <p>Google Analytics, Google Tag Manager et le marketing restent désactivés. Aucun consentement n’est recueilli pour ces outils. Une information et, si nécessaire, un choix adaptés seront proposés avant toute activation.</p>
+    <p>L’ancien cookie <code>performcv_consent</code>, s’il est encore présent dans votre navigateur, n’est plus utilisé pour les consultations et disparaîtra à son expiration. Vous pouvez aussi le supprimer depuis votre navigateur.</p>
     <p><a href="{{ path('app_privacy') }}">Consulter la politique de confidentialité</a>.</p>
 </article>
 {% endblock %}

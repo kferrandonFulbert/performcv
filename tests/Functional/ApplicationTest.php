@@ -157,20 +157,19 @@ class ApplicationTest extends WebTestCase
         self::assertNotNull($this->em()->find(Profiles::class, $this->profileId));
     }
 
-    public function testPublicShareExcludesHiddenContentAndCountsOnce(): void
+    public function testPublicShareExcludesHiddenContentAndCountsEachDisplay(): void
     {
-        $consent = static::getContainer()->get(\App\Service\CookieConsent::class)->cookie(true, false, false);
-        $this->client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie(\App\Service\CookieConsent::COOKIE_NAME, $consent->getValue()));
         $this->client->request('GET', '/s/'.$this->token);
         self::assertResponseIsSuccessful();
         self::assertSelectorNotExists('.cv-experiences');
         self::assertStringNotContainsString('SecretCompany', $this->client->getResponse()->getContent());
         self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, nofollow, noarchive');
         $this->client->request('GET', '/s/'.$this->token);
-        self::assertSame(1, $this->em()->getRepository(CvViews::class)->count([]));
+        self::assertSame(2, $this->em()->getRepository(CvViews::class)->count([]));
         $view = $this->em()->getRepository(CvViews::class)->findOneBy([]);
         self::assertNull($view->getIpAddress());
         self::assertNull($view->getUserAgent());
+        self::assertNull($view->getReferrer());
     }
 
     public function testPrintableCvContainsReadableUrlsAndOnlyVisibleSections(): void
@@ -397,20 +396,38 @@ class ApplicationTest extends WebTestCase
         self::assertSelectorExists('.cv-document');
     }
 
-    public function testShareDoesNotCountWithoutConsentOrAfterWithdrawal(): void
+    public function testShareCountsWithoutConsentAndDisplaysOwnerCounter(): void
     {
         $this->client->request('GET', '/s/'.$this->token);
         self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('.cookie-preferences');
+        self::assertSame(1, $this->em()->getRepository(CvViews::class)->count([]));
+        $session = $this->client->getRequest()->getSession();
+        self::assertSame([], array_filter(array_keys($session->all()), static fn (string $key): bool => str_starts_with($key, 'viewed_share_')));
+        self::assertNull($this->client->getCookieJar()->get(\App\Service\CookieConsent::COOKIE_NAME));
+        $this->loginOwner();
+        $this->client->request('GET', '/app/cv/'.$this->cvId);
+        self::assertSelectorTextContains('.view-count', '1 consultation(s)');
+    }
+
+    public function testShareCountsIndependentlyOfLegacyCookieChoice(): void
+    {
+        foreach ([false, true] as $analytics) {
+            $cookie = (new \App\Service\CookieConsent('legacy-test-secret'))->cookie($analytics, false, false);
+            $this->client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie(\App\Service\CookieConsent::COOKIE_NAME, $cookie->getValue()));
+            $this->client->request('GET', '/s/'.$this->token);
+            self::assertResponseIsSuccessful();
+        }
+        self::assertSame(2, $this->em()->getRepository(CvViews::class)->count([]));
+    }
+
+    public function testShareDoesNotCountHeadOrPostRequests(): void
+    {
+        foreach (['HEAD', 'POST'] as $method) {
+            $this->client->request($method, '/s/'.$this->token);
+            self::assertResponseIsSuccessful();
+        }
         self::assertSame(0, $this->em()->getRepository(CvViews::class)->count([]));
-        $crawler = $this->client->request('GET', '/cookies');
-        $this->client->submit($crawler->selectButton('Tout accepter')->form(['adult' => '1']));
-        $this->client->request('GET', '/s/'.$this->token);
-        self::assertSame(1, $this->em()->getRepository(CvViews::class)->count([]));
-        $crawler = $this->client->request('GET', '/cookies');
-        $this->client->submit($crawler->selectButton('Tout refuser')->form());
-        $this->client->request('GET', '/s/'.$this->token);
-        self::assertResponseIsSuccessful();
-        self::assertSame(1, $this->em()->getRepository(CvViews::class)->count([]));
     }
 
     public function testPrivacyPurgeRemovesOnlyExpiredViewsAndCounters(): void
@@ -539,7 +556,7 @@ class ApplicationTest extends WebTestCase
         }), self::stringStartsWith('performcv-template-'))->willReturn($session);
         $stripe->expects(self::once())->method('retrieve')->with('cs_test_fixture')->willReturn($session);
         $access = static::getContainer()->get(\App\Service\TemplateAccess::class);
-        $payments = new \App\Service\TemplatePayment($em, $stripe, $access, static::getContainer()->get(\App\Repository\TemplatePurchasesRepository::class));
+        $payments = new \App\Service\TemplatePayment($em, $stripe, $access, static::getContainer()->get(\App\Repository\TemplatePurchasesRepository::class), static::getContainer()->get(\App\Service\AuditTrail::class));
         self::assertSame($session['url'], $payments->checkout($template, $user, 'https://performcv.fr/app/cv/1/modifier'));
         self::assertSame($session['url'], $payments->checkout($template, $user, 'https://performcv.fr/app/cv/1/modifier'));
         self::assertSame(1, $em->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
@@ -609,6 +626,7 @@ class ApplicationTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
         $this->client->request('GET', '/s/'.$this->token);
         self::assertResponseStatusCodeSame(403);
+        self::assertSame(0, $this->em()->getRepository(CvViews::class)->count([]));
     }
 
     public function testEveryModelCanBePreviewedAndStudentPutsEducationFirst(): void
@@ -734,6 +752,165 @@ class ApplicationTest extends WebTestCase
             self::assertResponseStatusCodeSame(403);
         } finally {
             unlink($file);
+        }
+    }
+
+    public function testAuditTracksActorResourcesAndKeepsPayloadMinimal(): void
+    {
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/profils/nouveau');
+        $this->client->submit($crawler->selectButton('Enregistrer le profil')->form(['profile[title]' => 'Private audit fixture']));
+        self::assertResponseStatusCodeSame(303);
+        $event = $this->em()->getConnection()->fetchAssociative('SELECT * FROM audit_events');
+        self::assertSame('profile.created', $event['action']);
+        self::assertSame($this->ownerId, (int) $event['actor_id']);
+        self::assertSame('profile', $event['resource_type']);
+        self::assertGreaterThan($this->profileId, (int) $event['resource_id']);
+        self::assertMatchesRegularExpression('/^[a-f0-9]{32}$/D', $event['request_id']);
+        self::assertSame(['id', 'occurred_at', 'actor_id', 'action', 'resource_type', 'resource_id', 'request_id'], array_keys($event));
+        self::assertStringNotContainsString('Private audit fixture', json_encode($event));
+        self::assertStringNotContainsString('owner@example.test', json_encode($event));
+
+        $profileId = (int) $event['resource_id'];
+        $crawler = $this->client->request('GET', '/app/profils/'.$profileId.'/modifier');
+        $this->client->submit($crawler->selectButton('Enregistrer le profil')->form(['profile[title]' => 'Changed private title']));
+        $latest = $this->em()->getConnection()->fetchAssociative('SELECT * FROM audit_events ORDER BY id DESC');
+        self::assertSame('profile.updated', $latest['action']);
+        self::assertSame($profileId, (int) $latest['resource_id']);
+        self::assertNotSame($event['request_id'], $latest['request_id']);
+    }
+
+    public function testAuditFailureRollsBackAlreadyFlushedBusinessWrite(): void
+    {
+        $em = $this->em();
+        $connection = $em->getConnection();
+        $original = $connection->fetchOne('SELECT title FROM profiles WHERE id = ?', [$this->profileId]);
+        $profile = $em->find(Profiles::class, $this->profileId);
+        $profile->setTitle('Must roll back');
+        $connection->executeStatement("CREATE TRIGGER reject_audit BEFORE INSERT ON audit_events BEGIN SELECT RAISE(ABORT, 'Audit fixture failure'); END");
+        try {
+            static::getContainer()->get(\App\Service\WorkspaceWriter::class)->save($profile);
+            self::fail('Write succeeded without its audit event.');
+        } catch (\Doctrine\DBAL\Exception) {
+            self::assertFalse($em->isOpen());
+            self::assertSame($original, $connection->fetchOne('SELECT title FROM profiles WHERE id = ?', [$this->profileId]));
+            self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM audit_events'));
+        }
+    }
+
+    public function testAuditSurvivesAccountDeletionAndSharesRequestCorrelation(): void
+    {
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/compte/supprimer');
+        $this->client->submit($crawler->selectButton('Supprimer définitivement mon compte')->form(['delete_account[currentPassword]' => 'Owner-password-123', 'delete_account[confirm]' => '1']));
+        self::assertResponseRedirects('/', 303);
+        $events = $this->em()->getConnection()->fetchAllAssociative('SELECT * FROM audit_events ORDER BY id');
+        self::assertSame(['account.deleted', 'profile.deleted'], array_column($events, 'action'));
+        self::assertSame([$this->ownerId, $this->ownerId], array_map('intval', array_column($events, 'actor_id')));
+        self::assertSame($events[0]['request_id'], $events[1]['request_id']);
+        self::assertNull($this->em()->find(Users::class, $this->ownerId));
+        self::assertSame(0, (int) $this->em()->getConnection()->fetchOne('SELECT COUNT(*) FROM cv_shares'));
+    }
+
+    public function testAuditIgnoresPublicViewsPreviewAndRejectedWrites(): void
+    {
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertSame(1, $this->em()->getRepository(CvViews::class)->count([]));
+        self::assertSame(0, (int) $this->em()->getConnection()->fetchOne('SELECT COUNT(*) FROM audit_events'));
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        $this->client->submit($crawler->selectButton('Prévisualiser')->form());
+        self::assertResponseIsSuccessful();
+        $this->client->catchExceptions(true);
+        $this->client->request('POST', '/app/profils/'.$this->profileId.'/supprimer', ['_token' => 'bad']);
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame(0, (int) $this->em()->getConnection()->fetchOne('SELECT COUNT(*) FROM audit_events'));
+    }
+
+    public function testAuditWebhookReplayCreatesOneSystemEvent(): void
+    {
+        [, $event] = $this->pendingTemplatePurchase();
+        $this->sendStripeEvent($event);
+        self::assertResponseIsSuccessful();
+        $this->sendStripeEvent($event);
+        self::assertResponseIsSuccessful();
+        $events = $this->em()->getConnection()->fetchAllAssociative('SELECT * FROM audit_events');
+        self::assertCount(1, $events);
+        self::assertSame('purchase.confirmed', $events[0]['action']);
+        self::assertNull($events[0]['actor_id']);
+        self::assertStringNotContainsString('cs_test', json_encode($events));
+        self::assertStringNotContainsString('pi_fixture', json_encode($events));
+    }
+
+    public function testAuditCommandsFilterAndPurgeOnlyExpiredRecords(): void
+    {
+        $connection = $this->em()->getConnection();
+        $base = ['actor_id' => $this->ownerId, 'action' => 'profile.updated', 'resource_type' => 'profile', 'resource_id' => $this->profileId, 'request_id' => str_repeat('a', 32)];
+        $connection->insert('audit_events', $base + ['occurred_at' => (new \DateTimeImmutable('-7 months'))->format('Y-m-d H:i:s')]);
+        $connection->insert('audit_events', $base + ['occurred_at' => (new \DateTimeImmutable('-1 day'))->format('Y-m-d H:i:s')]);
+        $application = new \Symfony\Bundle\FrameworkBundle\Console\Application(static::$kernel);
+        $list = new \Symfony\Component\Console\Tester\CommandTester($application->find('app:audit:list'));
+        self::assertSame(0, $list->execute(['--actor' => (string) $this->ownerId, '--limit' => '1']));
+        self::assertSame('profile.updated', json_decode(trim($list->getDisplay()), true, flags: JSON_THROW_ON_ERROR)['action']);
+        self::assertSame(2, $list->execute(['--limit' => '1000']));
+        $purge = new \Symfony\Component\Console\Tester\CommandTester($application->find('app:audit:purge'));
+        self::assertSame(0, $purge->execute(['--dry-run' => true]));
+        self::assertStringContainsString('1 événement(s) à supprimer', $purge->getDisplay());
+        self::assertSame(2, (int) $connection->fetchOne('SELECT COUNT(*) FROM audit_events'));
+        self::assertSame(0, $purge->execute([]));
+        self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM audit_events'));
+    }
+
+    public function testSecurityAuditLogsAuthenticationAndDenialsWithoutCredentials(): void
+    {
+        $file = static::$kernel->getLogDir().'/audit/test/audit_security-'.gmdate('Y-m-d').'.log';
+        clearstatcache(true, $file);
+        $offset = is_file($file) ? filesize($file) : 0;
+        $this->client->setServerParameter('HTTP_X_REQUEST_ID', 'untrusted-client-id');
+        $crawler = $this->client->request('GET', '/connexion');
+        $crawler = $this->client->submit($crawler->selectButton('Se connecter')->form(['_username' => 'owner@example.test', '_password' => 'wrong-secret-fixture']));
+        $crawler = $this->client->followRedirect();
+        $this->client->submit($crawler->selectButton('Se connecter')->form(['_username' => 'owner@example.test', '_password' => 'Owner-password-123']));
+        $this->client->catchExceptions(true);
+        $this->client->request('POST', '/app/profils/'.$this->profileId.'/supprimer', ['_token' => 'invalid-secret-fixture']);
+        self::assertResponseStatusCodeSame(403);
+        $crawler = $this->client->request('GET', '/app');
+        $this->client->submit($crawler->selectButton('Déconnexion ↗')->form());
+        self::assertResponseRedirects('/');
+        $lines = substr(file_get_contents($file), $offset);
+        $events = array_map(static fn (string $line): array => json_decode($line, true, flags: JSON_THROW_ON_ERROR), array_filter(explode("\n", trim($lines))));
+        self::assertSame(['auth.login_failed', 'auth.login_succeeded', 'access.denied', 'auth.logout'], array_column($events, 'message'));
+        self::assertNull($events[0]['context']['actor_id']);
+        self::assertSame($this->ownerId, $events[1]['context']['actor_id']);
+        foreach ($events as $event) {
+            self::assertSame('audit_security', $event['channel']);
+            self::assertSame(['actor_id', 'request_id'], array_keys($event['context']));
+            self::assertMatchesRegularExpression('/^[a-f0-9]{32}$/D', $event['context']['request_id']);
+        }
+        foreach (['owner@example.test', 'wrong-secret-fixture', 'Owner-password-123', 'invalid-secret-fixture', 'untrusted-client-id'] as $secret) {
+            self::assertStringNotContainsString($secret, $lines);
+        }
+    }
+
+    public function testAuditPurgeOnlyRemovesItsOwnExpiredSecurityFiles(): void
+    {
+        $directory = sys_get_temp_dir().'/performcv-audit-test-'.bin2hex(random_bytes(8));
+        mkdir($directory, 0700);
+        $old = $directory.'/audit_security-2000-01-01.log';
+        $recent = $directory.'/audit_security-'.gmdate('Y-m-d').'.log';
+        $other = $directory.'/other.log';
+        try {
+            foreach ([$old, $recent, $other] as $file) { file_put_contents($file, 'fixture'); }
+            $tester = new \Symfony\Component\Console\Tester\CommandTester(new \App\Command\PurgeAuditCommand($this->em(), $directory, static::getContainer()->get(\App\Service\SecurityAudit::class)));
+            self::assertSame(0, $tester->execute(['--dry-run' => true]));
+            self::assertFileExists($old);
+            self::assertSame(0, $tester->execute([]));
+            self::assertFileDoesNotExist($old);
+            self::assertFileExists($recent);
+            self::assertFileExists($other);
+        } finally {
+            foreach ([$old, $recent, $other] as $file) { if (is_file($file)) { unlink($file); } }
+            rmdir($directory);
         }
     }
 

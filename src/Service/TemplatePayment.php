@@ -15,6 +15,7 @@ class TemplatePayment
         private StripeCheckout $stripe,
         private TemplateAccess $access,
         private TemplatePurchasesRepository $purchases,
+        private AuditTrail $audit,
     ) {
     }
 
@@ -34,8 +35,13 @@ class TemplatePayment
             if (($session['status'] ?? '') !== 'expired') { throw new \UnexpectedValueException('Unexpected Checkout state.'); }
         }
         $purchase = $pending ?? new TemplatePurchases($user, $template, $template->getPrice());
-        $this->em->persist($purchase);
-        $this->em->flush();
+        if ($pending === null) {
+            $this->em->wrapInTransaction(function () use ($purchase, $user): void {
+                $this->em->persist($purchase);
+                $this->em->flush();
+                $this->audit->append('purchase.created', 'purchase', $purchase->getId(), $user->getId());
+            });
+        }
         $session = $this->stripe->create([
             'mode' => 'payment', 'payment_method_types' => ['card'],
             'client_reference_id' => (string) $purchase->getId(),
@@ -44,8 +50,12 @@ class TemplatePayment
             'success_url' => $returnUrl.'?payment=confirmation', 'cancel_url' => $returnUrl.'?payment=cancelled',
         ], 'performcv-template-'.$purchase->getId().'-'.($purchase->getCheckoutSessionId() ?? 'initial'));
         $purchase->setCheckoutSessionId($session['id']);
-        $this->em->flush();
-        return $this->checkoutUrl($session);
+        $url = $this->checkoutUrl($session);
+        $this->em->wrapInTransaction(function () use ($purchase, $user): void {
+            $this->em->flush();
+            $this->audit->append('purchase.checkout_created', 'purchase', $purchase->getId(), $user->getId());
+        });
+        return $url;
     }
 
     public function fulfill(array $event): void
@@ -70,11 +80,17 @@ class TemplatePayment
         }
         if (!$this->em->find(Users::class, $purchase->getUserId()) || !$this->em->find(CvTemplates::class, $purchase->getTemplateId())) { return; }
         // Atomic conditional update makes concurrent delivery and replay idempotent.
-        $this->em->getConnection()->executeStatement(
-            'UPDATE template_purchases SET stripe_payment_id = ?, purchased_at = ? WHERE id = ? AND purchased_at IS NULL',
-            [$session['payment_intent'], new \DateTime(), $purchase->getId()],
-            [\Doctrine\DBAL\ParameterType::STRING, \Doctrine\DBAL\Types\Types::DATETIME_MUTABLE, \Doctrine\DBAL\ParameterType::INTEGER],
-        );
+        $this->em->getConnection()->transactional(function () use ($session, $purchase): void {
+            $changed = $this->em->getConnection()->executeStatement(
+                'UPDATE template_purchases SET stripe_payment_id = ?, purchased_at = ? WHERE id = ? AND purchased_at IS NULL',
+                [$session['payment_intent'], new \DateTime(), $purchase->getId()],
+                [\Doctrine\DBAL\ParameterType::STRING, \Doctrine\DBAL\Types\Types::DATETIME_MUTABLE, \Doctrine\DBAL\ParameterType::INTEGER],
+            );
+            if ($changed === 1) {
+                // A verified webhook is a system action, never an authenticated user action.
+                $this->audit->append('purchase.confirmed', 'purchase', $purchase->getId(), null);
+            }
+        });
     }
 
     private function checkoutUrl(array $session): string

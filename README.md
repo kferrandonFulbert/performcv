@@ -13,6 +13,7 @@ gratuits et six modèles en achat unique, avec confirmation Stripe côté serveu
 | Modèles, droits d’utilisation et configuration Stripe | [Modèles et paiements](docs/modeles-et-paiements.md) |
 | Purge, conservation, sauvegardes et demandes de droits | [Exploitation des données personnelles](docs/exploitation-donnees-personnelles.md) |
 | Associations Doctrine et migration MySQL | [Intégrité des relations](docs/associations-doctrine.md) |
+| Actions des comptes, journaux de sécurité, consultation et purge | [Journalisation](docs/journalisation.md) |
 | Canonical, robots.txt et sitemap | [SEO](docs/seo.md) |
 
 ## Socle
