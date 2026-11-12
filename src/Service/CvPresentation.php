@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\{CvInstances, CvTemplates, Profiles, Users};
+use App\Entity\{CvInstances, Profiles};
 use App\Repository\WorkspaceRepository;
 use App\Form\CvType;
 
 class CvPresentation
 {
-    public function __construct(private WorkspaceRepository $data, private TemplateAccess $access)
+    public function __construct(private WorkspaceRepository $data, private TemplateAccess $access, private ProfilePhoto $photos)
     {
     }
 
@@ -28,7 +28,7 @@ class CvPresentation
         $color = in_array($cv?->getColorScheme(), CvType::COLORS, true) ? $cv->getColorScheme() : 'ink';
         $font = in_array($cv?->getFontFamily(), CvType::FONTS, true) ? $cv->getFontFamily() : 'sans';
 
-        return ['profile' => $profile, 'owner' => $profile->getUser(), 'content' => $content,
+        return ['profile_photo' => $cv && ($cv->getSectionsVisibility()['photo'] ?? false) === true ? $this->photos->dataUri($profile->getProfilePictureUrl()) : null, 'profile' => $profile, 'owner' => $profile->getUser(), 'content' => $content,
             'skill_names' => $this->data->skillNames($content['skills'] ?? []), 'layout' => $layout, 'color' => $color, 'font' => $font,
             'theme' => $theme, 'is_preview' => $preview, 'selected_template' => $template];
     }

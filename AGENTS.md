@@ -127,3 +127,7 @@ Cette recherche n'est pas nécessaire pour une simple lecture du modèle, une mo
 - Exécuter les tests de base de données uniquement sur une base dédiée aux tests, après vérification de la connexion. Ne pas appliquer de migration à une base partagée ou de production sans autorisation explicite.
 - Ne pas présenter la présence de `tests/bootstrap.php` ou un lancement sans tests comme une couverture fonctionnelle. Une modification documentaire seule ne nécessite pas de tests applicatifs.
 - Indiquer dans le compte rendu les fichiers modifiés, les vérifications réellement effectuées et les limites rencontrées. Ne jamais annoncer un test réussi sans l'avoir exécuté.
+
+## Photo de profil
+
+Le formulaire de profil accepte une photo JPEG, PNG ou WebP (2 Mo et 4 000 × 4 000 pixels maximum). `ProfilePhoto` stocke les fichiers sous `var/profile-photos/<environnement>/`, hors du dossier public ; ce dossier doit être conservé lors des déploiements. `profile_picture_url` contient uniquement le nom généré. La clé `photo` de `sections_visibility` commande son inclusion dans chaque CV, avec absence équivalente à `false`. Les rendus autorisés intègrent les données de l’image seulement si cette option est activée ; le profil public seul ne publie pas la photo. Le remplacement, le retrait et la suppression du profil ou du compte effacent les fichiers concernés.

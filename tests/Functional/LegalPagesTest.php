@@ -42,7 +42,7 @@ class LegalPagesTest extends WebTestCase
         self::assertSelectorTextContains('article', '90 jours');
         self::assertSelectorTextContains('article', '30 jours');
         self::assertSelectorTextContains('article', 'mineur');
-        self::assertSelectorExists('article a[href="mailto:kferrandon@gmail.com"]');
+        self::assertSelectorExists('article a[href="mailto:contact@performcv.fr"]');
         $client->request('GET', '/inscription');
         self::assertSelectorTextContains('.form-card .privacy-notice', 'Aucun accord au marketing');
         self::assertSelectorExists('.form-card a[href="/confidentialite"]');

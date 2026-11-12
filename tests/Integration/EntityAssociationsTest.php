@@ -196,7 +196,7 @@ final class EntityAssociationsTest extends TestCase
         $em->find(\App\Entity\CvShares::class, $share->getId());
         $em->find(\App\Entity\CvViews::class, $view->getId());
         $em->find(\App\Entity\TemplatePurchases::class, $purchase->getId());
-        (new \App\Service\WorkspaceWriter($em))->deleteAccount($lazyUser);
+        (new \App\Service\WorkspaceWriter($em, new \App\Service\ProfilePhoto(dirname(__DIR__, 2), 'test')))->deleteAccount($lazyUser);
         foreach (['users', 'profiles', 'experiences', 'cv_instances', 'cv_shares', 'cv_views', 'template_purchases'] as $table) {
             self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table));
         }

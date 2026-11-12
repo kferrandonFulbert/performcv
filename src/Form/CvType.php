@@ -29,6 +29,7 @@ class CvType extends AbstractType
             ->add('colorScheme', ChoiceType::class, ['label' => 'Palette', 'choices' => self::COLORS])
             ->add('fontFamily', ChoiceType::class, ['label' => 'Typographie', 'choices' => self::FONTS]);
         $cv = $builder->getData();
+        $builder->add('photo', CheckboxType::class, ['label' => 'Afficher la photo de profil', 'mapped' => false, 'required' => false, 'data' => ($cv?->getSectionsVisibility()['photo'] ?? false) === true, 'help' => 'Ajoutez ou remplacez votre photo depuis la modification du profil.']);
         foreach (SectionCatalog::SECTIONS as $key => $definition) {
             $builder->add($key, CheckboxType::class, ['label' => $definition['label'], 'mapped' => false, 'required' => false, 'data' => ($cv?->getSectionsVisibility()[$key] ?? true) === true]);
         }

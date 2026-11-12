@@ -113,7 +113,7 @@ class CvController extends AbstractController
         $working = clone $cv;
         $form = $this->createForm(CvType::class, $working, ['templates' => $templates])->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $visibility = [];
+            $visibility = ['photo' => $form->get('photo')->getData() === true];
             foreach (array_keys(SectionCatalog::SECTIONS) as $key) {
                 $visibility[$key] = $form->get($key)->getData() === true;
             }
