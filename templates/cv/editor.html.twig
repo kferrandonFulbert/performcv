@@ -21,6 +21,7 @@
 {% endfor %}
 </div>
 {{ form_row(form.templateId) }}{{ form_row(form.colorScheme) }}{{ form_row(form.fontFamily) }}
+{{ form_row(form.photo) }}
 <fieldset><legend>Rubriques visibles</legend>{% for key in ['experiences', 'educations', 'certifications', 'projects', 'skills', 'languages'] %}{{ form_row(attribute(form, key)) }}{% endfor %}</fieldset>
 <div class="actions"><button class="button secondary" type="submit" name="_preview" value="1">Prévisualiser</button><button class="button" type="submit" data-save-cv>Enregistrer le CV</button></div>
 {{ form_end(form) }}

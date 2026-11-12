@@ -7,7 +7,7 @@ namespace App\Controller;
 use App\Entity\{Profiles, Users};
 use App\Form\{EntryType, ProfileType};
 use App\Repository\WorkspaceRepository;
-use App\Service\{Chronology, SectionCatalog, WorkspaceWriter};
+use App\Service\{Chronology, ProfilePhoto, SectionCatalog, WorkspaceWriter};
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\{Request, Response};
@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/app')]
 class ProfileController extends AbstractController
 {
-    public function __construct(private WorkspaceRepository $data, private WorkspaceWriter $writer)
+    public function __construct(private WorkspaceRepository $data, private WorkspaceWriter $writer, private ProfilePhoto $photos)
     {
     }
 
@@ -100,13 +100,23 @@ class ProfileController extends AbstractController
     {
         $form = $this->createForm(ProfileType::class, $profile)->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->writer->save($profile);
+            $oldPhoto = $profile->getProfilePictureUrl();
+            $photo = $form->get('photo')->getData();
+            $newPhoto = $photo ? $this->photos->store($photo) : ($form->get('removePhoto')->getData() ? null : $oldPhoto);
+            $profile->setProfilePictureUrl($newPhoto);
+            try {
+                $this->writer->save($profile);
+            } catch (\Throwable $error) {
+                if ($newPhoto !== $oldPhoto) { $this->photos->delete($newPhoto); }
+                throw $error;
+            }
+            if ($oldPhoto !== $newPhoto) { $this->photos->delete($oldPhoto); }
             $this->addFlash('success', 'Profil enregistré.');
 
             return $this->redirectToRoute('app_profile_show', ['id' => $profile->getId()], 303);
         }
 
-        return $this->render('shared/form.html.twig', ['form' => $form, 'title' => $title, 'eyebrow' => 'Votre parcours', 'back' => $this->generateUrl('app_dashboard'), 'button' => 'Enregistrer le profil']);
+        return $this->render('shared/form.html.twig', ['form' => $form, 'title' => $title, 'eyebrow' => 'Votre parcours', 'back' => $this->generateUrl('app_dashboard'), 'button' => 'Enregistrer le profil', 'profile_photo' => $this->photos->dataUri($profile->getProfilePictureUrl())]);
     }
 
     private function editEntry(Request $request, Profiles $profile, string $section, object $entry, Chronology $chronology): Response

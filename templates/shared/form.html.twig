@@ -23,6 +23,7 @@
         {% else %}
             <p class="privacy-notice">Pour connaître l’utilisation de vos données et exercer vos droits, consultez notre <a href="{{ path('app_privacy') }}">politique de confidentialité</a> ou contactez <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>.</p>
         {% endif %}
+        {% if profile_photo|default(null) %}<img class="profile-photo" src="{{ profile_photo }}" alt="Photo de profil actuelle" width="96" height="96">{% endif %}
         {{ form_start(form, {attr: {'data-turbo': 'false'}}) }}
         {{ form_errors(form) }}{{ form_widget(form) }}
         <button class="button full" type="submit">{{ button }} <span aria-hidden="true">↗</span></button>

@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class WorkspaceWriter
 {
-    public function __construct(private EntityManagerInterface $em)
+    public function __construct(private EntityManagerInterface $em, private ProfilePhoto $photos)
     {
     }
 
@@ -41,7 +41,7 @@ class WorkspaceWriter
         });
     }
 
-    public function deleteProfile(Profiles $profile): void
+    public function deleteProfile(Profiles $profile, bool $deletePhoto = true): void
     {
         $this->em->wrapInTransaction(function () use ($profile): void {
             $ids = $this->em->createQueryBuilder()->select('c.id')->from(CvInstances::class, 'c')->where('c.profile_id = :id')->setParameter('id', $profile->getId())->getQuery()->getSingleColumnResult();
@@ -54,20 +54,24 @@ class WorkspaceWriter
             }
             $this->em->remove($profile);
         });
+        if ($deletePhoto) { $this->photos->delete($profile->getProfilePictureUrl()); }
     }
 
     public function deleteAccount(Users $user): void
     {
-        $this->em->wrapInTransaction(function () use ($user): void {
+        $photoNames = [];
+        $this->em->wrapInTransaction(function () use ($user, &$photoNames): void {
             $this->deleteWhere(TemplatePurchases::class, 'user_id', $user->getId());
             do {
                 $profiles = $this->em->getRepository(Profiles::class)->findBy(['user_id' => $user->getId()], ['id' => 'ASC'], 50);
                 foreach ($profiles as $profile) {
-                    $this->deleteProfile($profile);
+                    $photoNames[] = $profile->getProfilePictureUrl();
+                    $this->deleteProfile($profile, false);
                 }
             } while (count($profiles) === 50);
             $this->em->remove($user);
         });
+        foreach ($photoNames as $name) { $this->photos->delete($name); }
     }
 
     private function deleteCvChildren(int $cvId): void

@@ -665,6 +665,71 @@ class ApplicationTest extends WebTestCase
         self::assertSame(0, $this->em()->getRepository(\App\Entity\TemplatePurchases::class)->count([]));
     }
 
+    public function testProfilePhotoUploadVisibilityAndRemoval(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'photo');
+        file_put_contents($file, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='));
+        $this->loginOwner();
+        $photos = static::getContainer()->get(\App\Service\ProfilePhoto::class);
+        $name = null;
+        try {
+            $crawler = $this->client->request('GET', '/app/profils/'.$this->profileId.'/modifier');
+            $form = $crawler->selectButton('Enregistrer le profil')->form();
+            $form['profile[photo]']->upload($file);
+            $this->client->submit($form);
+            self::assertResponseStatusCodeSame(303);
+            $name = $this->em()->find(Profiles::class, $this->profileId)->getProfilePictureUrl();
+            self::assertNotNull($photos->dataUri($name));
+            $this->client->request('GET', '/s/'.$this->token);
+            self::assertSelectorNotExists('.cv-photo');
+            self::assertStringNotContainsString('data:image/png;base64,', $this->client->getResponse()->getContent());
+            $this->loginOwner();
+            $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+            $this->client->submit($crawler->selectButton('Prévisualiser')->form(['cv[photo]' => true]));
+            self::assertResponseIsSuccessful();
+            self::assertSelectorExists('.cv-photo');
+            $this->client->request('GET', '/s/'.$this->token);
+            self::assertSelectorNotExists('.cv-photo');
+            foreach ([true, false] as $visible) {
+                $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+                $this->client->submit($crawler->selectButton('Enregistrer le CV')->form(['cv[photo]' => $visible]));
+                self::assertResponseStatusCodeSame(303);
+                $this->client->request('GET', '/s/'.$this->token);
+                self::assertSelectorCount($visible ? 1 : 0, '.cv-photo');
+            }
+            $this->loginOwner();
+            $crawler = $this->client->request('GET', '/app/profils/'.$this->profileId.'/modifier');
+            $this->client->submit($crawler->selectButton('Enregistrer le profil')->form(['profile[removePhoto]' => true]));
+            self::assertResponseStatusCodeSame(303);
+            self::assertNull($photos->dataUri($name));
+            self::assertNull($this->em()->find(Profiles::class, $this->profileId)->getProfilePictureUrl());
+        } finally {
+            unlink($file);
+            $photos->delete($name);
+        }
+    }
+
+    public function testProfilePhotoRejectsNonImagesAndOtherOwners(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'photo');
+        file_put_contents($file, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+        try {
+            $this->loginOwner();
+            $crawler = $this->client->request('GET', '/app/profils/'.$this->profileId.'/modifier');
+            $form = $crawler->selectButton('Enregistrer le profil')->form();
+            $form['profile[photo]']->upload($file);
+            $this->client->submit($form);
+            self::assertSelectorExists('.form-card ul');
+            self::assertNull($this->em()->find(Profiles::class, $this->profileId)->getProfilePictureUrl());
+            $this->client->catchExceptions(true);
+            $this->client->loginUser($this->em()->getRepository(Users::class)->findOneBy(['email' => 'other@example.test']));
+            $this->client->request('POST', '/app/profils/'.$this->profileId.'/modifier');
+            self::assertResponseStatusCodeSame(403);
+        } finally {
+            unlink($file);
+        }
+    }
+
     private function seedCatalogue(): void
     {
         $application = new \Symfony\Bundle\FrameworkBundle\Console\Application(static::$kernel);
