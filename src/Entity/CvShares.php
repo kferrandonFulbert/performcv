@@ -17,8 +17,9 @@ class CvShares
     #[ORM\GeneratedValue(strategy: "IDENTITY")]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $cv_instance_id = null;
+    #[ORM\ManyToOne(targetEntity: CvInstances::class)]
+    #[ORM\JoinColumn(name: 'cv_instance_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_cv_shares_cv_instance_id')]
+    private ?CvInstances $cv_instance = null;
 
     #[ORM\Column(length: 255)]
     private ?string $share_token = null;
@@ -43,14 +44,19 @@ class CvShares
         return $this->id;
     }
 
-    public function getCvInstanceId(): ?int
+    public function getCvInstance(): ?CvInstances
     {
-        return $this->cv_instance_id;
+        return $this->cv_instance;
     }
 
-    public function setCvInstanceId(int $cv_instance_id): static
+    public function getCvInstanceId(): ?int
     {
-        $this->cv_instance_id = $cv_instance_id;
+        return $this->cv_instance?->getId();
+    }
+
+    public function setCvInstance(CvInstances $cv_instance): static
+    {
+        $this->cv_instance = $cv_instance;
 
         return $this;
     }

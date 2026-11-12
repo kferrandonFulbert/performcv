@@ -32,7 +32,7 @@ class ProfileController extends AbstractController
     #[Route('/profils/nouveau', name: 'app_profile_new', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
-        $profile = (new Profiles())->setUserId($this->getUser()->getId())->setSlug(bin2hex(random_bytes(16)));
+        $profile = (new Profiles())->setUser($this->getUser())->setSlug(bin2hex(random_bytes(16)));
 
         return $this->editProfile($request, $profile, 'Créer un profil');
     }
@@ -71,7 +71,7 @@ class ProfileController extends AbstractController
         if (count($this->data->section($section, $profileId)) >= 100) {
             throw $this->createAccessDeniedException('Cette rubrique contient déjà 100 éléments.');
         }
-        $entry = (new $definition['class']())->setProfileId($profileId);
+        $entry = (new $definition['class']())->setProfile($profile);
 
         return $this->editEntry($request, $profile, $section, $entry, $chronology);
     }
@@ -119,7 +119,7 @@ class ProfileController extends AbstractController
             } else {
                 if ($section === 'skills') {
                     $skill = $this->data->skill(trim($form->get('skillName')->getData()));
-                    $entry->setSkillId($skill->getId());
+                    $entry->setSkill($skill);
                 }
                 $this->writer->save($entry);
                 $this->addFlash('success', 'Rubrique enregistrée.');

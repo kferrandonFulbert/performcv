@@ -28,7 +28,7 @@ class WorkspaceWriter
     public function deleteShare(CvShares $share): void
     {
         $this->em->wrapInTransaction(function () use ($share): void {
-            $this->deleteWhere(CvViews::class, 'cv_share_id', $share->getId());
+            $this->deleteWhere(CvViews::class, 'cv_share', $share->getId());
             $this->em->remove($share);
         });
     }
@@ -44,13 +44,13 @@ class WorkspaceWriter
     public function deleteProfile(Profiles $profile): void
     {
         $this->em->wrapInTransaction(function () use ($profile): void {
-            $ids = $this->em->createQueryBuilder()->select('c.id')->from(CvInstances::class, 'c')->where('c.profile_id = :id')->setParameter('id', $profile->getId())->getQuery()->getSingleColumnResult();
+            $ids = $this->em->createQueryBuilder()->select('c.id')->from(CvInstances::class, 'c')->where('c.profile = :id')->setParameter('id', $profile->getId())->getQuery()->getSingleColumnResult();
             foreach ($ids as $id) {
                 $this->deleteCvChildren((int) $id);
             }
-            $this->deleteWhere(CvInstances::class, 'profile_id', $profile->getId());
+            $this->deleteWhere(CvInstances::class, 'profile', $profile->getId());
             foreach (SectionCatalog::SECTIONS as $definition) {
-                $this->deleteWhere($definition['class'], 'profile_id', $profile->getId());
+                $this->deleteWhere($definition['class'], 'profile', $profile->getId());
             }
             $this->em->remove($profile);
         });
@@ -59,9 +59,9 @@ class WorkspaceWriter
     public function deleteAccount(Users $user): void
     {
         $this->em->wrapInTransaction(function () use ($user): void {
-            $this->deleteWhere(TemplatePurchases::class, 'user_id', $user->getId());
+            $this->deleteWhere(TemplatePurchases::class, 'user', $user->getId());
             do {
-                $profiles = $this->em->getRepository(Profiles::class)->findBy(['user_id' => $user->getId()], ['id' => 'ASC'], 50);
+                $profiles = $this->em->getRepository(Profiles::class)->findBy(['user' => $user->getId()], ['id' => 'ASC'], 50);
                 foreach ($profiles as $profile) {
                     $this->deleteProfile($profile);
                 }
@@ -72,13 +72,26 @@ class WorkspaceWriter
 
     private function deleteCvChildren(int $cvId): void
     {
-        $this->em->createQuery('DELETE FROM '.CvViews::class.' v WHERE v.cv_share_id IN (SELECT s.id FROM '.CvShares::class.' s WHERE s.cv_instance_id = :id)')->setParameter('id', $cvId)->execute();
-        $this->deleteWhere(CvShares::class, 'cv_instance_id', $cvId);
+        // DQL bulk deletion does not synchronize Doctrine's managed objects.
+        foreach ($this->em->getUnitOfWork()->getIdentityMap()[CvViews::class] ?? [] as $view) {
+            if ($view->getCvShare()?->getCvInstanceId() === $cvId) {
+                $this->em->detach($view);
+            }
+        }
+        $this->em->createQuery('DELETE FROM '.CvViews::class.' v WHERE v.cv_share IN (SELECT s.id FROM '.CvShares::class.' s WHERE s.cv_instance = :id)')->setParameter('id', $cvId)->execute();
+        $this->deleteWhere(CvShares::class, 'cv_instance', $cvId);
     }
 
     private function deleteWhere(string $class, string $field, int $id): void
     {
-        // Class and column names are internal constants, never request parameters.
+        // Detach only the rows being deleted, leaving other managed objects intact.
+        $metadata = $this->em->getClassMetadata($class);
+        foreach ($this->em->getUnitOfWork()->getIdentityMap()[$class] ?? [] as $entity) {
+            if ($metadata->getFieldValue($entity, $field)?->getId() === $id) {
+                $this->em->detach($entity);
+            }
+        }
+        // Class and association names are internal constants, never request parameters.
         $this->em->createQuery('DELETE FROM '.$class.' e WHERE e.'.$field.' = :id')->setParameter('id', $id)->execute();
     }
 }

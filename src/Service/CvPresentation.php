@@ -17,7 +17,7 @@ class CvPresentation
     public function build(Profiles $profile, ?CvInstances $cv = null, bool $preview = false): array
     {
         $content = $this->data->content($profile->getId(), $cv?->getSectionsVisibility());
-        $template = $cv ? $this->data->find(CvTemplates::class, $cv->getTemplateId()) : null;
+        $template = $cv?->getTemplate();
         if ($cv && !$template) { throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException('Modèle indisponible.'); }
         if ($template && !$preview) { $this->access->require($template, $profile->getUserId()); }
         $theme = TemplateCatalog::known($template?->getSlug()) ? $template->getSlug() : 'classique';
@@ -28,7 +28,7 @@ class CvPresentation
         $color = in_array($cv?->getColorScheme(), CvType::COLORS, true) ? $cv->getColorScheme() : 'ink';
         $font = in_array($cv?->getFontFamily(), CvType::FONTS, true) ? $cv->getFontFamily() : 'sans';
 
-        return ['profile' => $profile, 'owner' => $this->data->find(Users::class, $profile->getUserId()), 'content' => $content,
+        return ['profile' => $profile, 'owner' => $profile->getUser(), 'content' => $content,
             'skill_names' => $this->data->skillNames($content['skills'] ?? []), 'layout' => $layout, 'color' => $color, 'font' => $font,
             'theme' => $theme, 'is_preview' => $preview, 'selected_template' => $template];
     }

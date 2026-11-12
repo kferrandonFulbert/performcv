@@ -30,9 +30,11 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __serialize(): array
     {
+        // Access a mapped property first: associations may expose a native lazy user.
+        $passwordHash = $this->password_hash;
         $data = (array) $this;
         // Symfony 7.4 can detect password changes without persisting the password hash in sessions.
-        $data["\0".self::class."\0password_hash"] = $this->password_hash === null ? null : hash('crc32c', $this->password_hash);
+        $data["\0".self::class."\0password_hash"] = $passwordHash === null ? null : hash('crc32c', $passwordHash);
 
         return $data;
     }

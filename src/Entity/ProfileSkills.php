@@ -17,11 +17,13 @@ class ProfileSkills
     #[ORM\GeneratedValue(strategy: "IDENTITY")]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $profile_id = null;
+    #[ORM\ManyToOne(targetEntity: Profiles::class)]
+    #[ORM\JoinColumn(name: 'profile_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_profile_skills_profile_id')]
+    private ?Profiles $profile = null;
 
-    #[ORM\Column]
-    private ?int $skill_id = null;
+    #[ORM\ManyToOne(targetEntity: Skills::class)]
+    #[ORM\JoinColumn(name: 'skill_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_profile_skills_skill_id')]
+    private ?Skills $skill = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $level = null;
@@ -34,26 +36,36 @@ class ProfileSkills
         return $this->id;
     }
 
-    public function getProfileId(): ?int
+    public function getProfile(): ?Profiles
     {
-        return $this->profile_id;
+        return $this->profile;
     }
 
-    public function setProfileId(int $profile_id): static
+    public function getProfileId(): ?int
     {
-        $this->profile_id = $profile_id;
+        return $this->profile?->getId();
+    }
+
+    public function setProfile(Profiles $profile): static
+    {
+        $this->profile = $profile;
 
         return $this;
     }
 
-    public function getSkillId(): ?int
+    public function getSkill(): ?Skills
     {
-        return $this->skill_id;
+        return $this->skill;
     }
 
-    public function setSkillId(int $skill_id): static
+    public function getSkillId(): ?int
     {
-        $this->skill_id = $skill_id;
+        return $this->skill?->getId();
+    }
+
+    public function setSkill(Skills $skill): static
+    {
+        $this->skill = $skill;
 
         return $this;
     }

@@ -16,8 +16,9 @@ class Experiences
     #[ORM\GeneratedValue(strategy: "IDENTITY")]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $profile_id = null;
+    #[ORM\ManyToOne(targetEntity: Profiles::class)]
+    #[ORM\JoinColumn(name: 'profile_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_experiences_profile_id')]
+    private ?Profiles $profile = null;
 
     #[ORM\Column(length: 255)]
     private ?string $company_name = null;
@@ -48,14 +49,19 @@ class Experiences
         return $this->id;
     }
 
-    public function getProfileId(): ?int
+    public function getProfile(): ?Profiles
     {
-        return $this->profile_id;
+        return $this->profile;
     }
 
-    public function setProfileId(int $profile_id): static
+    public function getProfileId(): ?int
     {
-        $this->profile_id = $profile_id;
+        return $this->profile?->getId();
+    }
+
+    public function setProfile(Profiles $profile): static
+    {
+        $this->profile = $profile;
 
         return $this;
     }

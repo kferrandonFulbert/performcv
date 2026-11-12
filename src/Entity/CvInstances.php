@@ -17,11 +17,13 @@ class CvInstances
     #[ORM\GeneratedValue(strategy: "IDENTITY")]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $profile_id = null;
+    #[ORM\ManyToOne(targetEntity: Profiles::class)]
+    #[ORM\JoinColumn(name: 'profile_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_cv_instances_profile_id')]
+    private ?Profiles $profile = null;
 
-    #[ORM\Column]
-    private ?int $template_id = null;
+    #[ORM\ManyToOne(targetEntity: CvTemplates::class)]
+    #[ORM\JoinColumn(name: 'template_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_cv_instances_template_id')]
+    private ?CvTemplates $template = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $custom_styles = null;
@@ -46,26 +48,36 @@ class CvInstances
         return $this->id;
     }
 
-    public function getProfileId(): ?int
+    public function getProfile(): ?Profiles
     {
-        return $this->profile_id;
+        return $this->profile;
     }
 
-    public function setProfileId(int $profile_id): static
+    public function getProfileId(): ?int
     {
-        $this->profile_id = $profile_id;
+        return $this->profile?->getId();
+    }
+
+    public function setProfile(Profiles $profile): static
+    {
+        $this->profile = $profile;
 
         return $this;
     }
 
-    public function getTemplateId(): ?int
+    public function getTemplate(): ?CvTemplates
     {
-        return $this->template_id;
+        return $this->template;
     }
 
-    public function setTemplateId(int $template_id): static
+    public function getTemplateId(): ?int
     {
-        $this->template_id = $template_id;
+        return $this->template?->getId();
+    }
+
+    public function setTemplate(CvTemplates $template): static
+    {
+        $this->template = $template;
 
         return $this;
     }

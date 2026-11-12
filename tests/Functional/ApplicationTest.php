@@ -36,12 +36,19 @@ class ApplicationTest extends WebTestCase
         // SQLite needs no PostgreSQL Messenger trigger hooks. Generate its DDL directly.
         $connection = $em->getConnection();
         $platform = new SQLitePlatform();
-        foreach ($connection->createSchemaManager()->introspectSchema()->toDropSql($platform) as $sql) {
-            $connection->executeStatement($sql);
+        // Only this verified dedicated test database is rebuilt with constraints disabled.
+        $connection->executeStatement('PRAGMA foreign_keys=OFF');
+        try {
+            foreach ($connection->createSchemaManager()->introspectSchema()->toDropSql($platform) as $sql) {
+                $connection->executeStatement($sql);
+            }
+            foreach ($tool->getSchemaFromMetadata($metadata)->toSql($platform) as $sql) {
+                $connection->executeStatement($sql);
+            }
+        } finally {
+            $connection->executeStatement('PRAGMA foreign_keys=ON');
         }
-        foreach ($tool->getSchemaFromMetadata($metadata)->toSql($platform) as $sql) {
-            $connection->executeStatement($sql);
-        }
+        self::assertSame(1, (int) $connection->fetchOne('PRAGMA foreign_keys'));
         $user = (new Users())->setEmail('owner@example.test')->setFirstName('Camille')->setLastName('Martin');
         $user->setPasswordHash(static::getContainer()->get(UserPasswordHasherInterface::class)->hashPassword($user, 'Owner-password-123'));
         $em->persist($user);
@@ -51,17 +58,17 @@ class ApplicationTest extends WebTestCase
         $em->persist($template);
         $em->flush();
         $this->ownerId = $user->getId();
-        $profile = (new Profiles())->setUserId($user->getId())->setTitle('Designer produit')->setSlug(str_repeat('a', 32));
+        $profile = (new Profiles())->setUser($user)->setTitle('Designer produit')->setSlug(str_repeat('a', 32));
         $em->persist($profile);
         $em->flush();
         $this->profileId = $profile->getId();
-        $em->persist((new Experiences())->setProfileId($profile->getId())->setCompanyName('SecretCompany')->setPosition('Designer')->setDescription('<script>alert(1)</script>'));
-        $cv = (new CvInstances())->setProfileId($profile->getId())->setTemplateId($template->getId())->setSectionsVisibility(['experiences' => false]);
+        $em->persist((new Experiences())->setProfile($profile)->setCompanyName('SecretCompany')->setPosition('Designer')->setDescription('<script>alert(1)</script>'));
+        $cv = (new CvInstances())->setProfile($profile)->setTemplate($template)->setSectionsVisibility(['experiences' => false]);
         $em->persist($cv);
         $em->flush();
         $this->cvId = $cv->getId();
         $this->token = str_repeat('b', 64);
-        $em->persist((new CvShares())->setCvInstanceId($cv->getId())->setShareToken($this->token));
+        $em->persist((new CvShares())->setCvInstance($cv)->setShareToken($this->token));
         $em->flush();
     }
 
@@ -359,11 +366,11 @@ class ApplicationTest extends WebTestCase
 
     public function testEntryCannotBeAddressedThroughAnotherProfile(): void
     {
-        $second = (new Profiles())->setUserId($this->ownerId)->setTitle('Autre profil');
+        $second = (new Profiles())->setUser($this->em()->find(Users::class, $this->ownerId))->setTitle('Autre profil');
         $this->em()->persist($second);
         $this->em()->flush();
         $secondId = $second->getId();
-        $entry = $this->em()->getRepository(Experiences::class)->findOneBy(['profile_id' => $this->profileId]);
+        $entry = $this->em()->getRepository(Experiences::class)->findOneBy(['profile' => $this->profileId]);
         $entryId = $entry->getId();
         $this->loginOwner();
         $this->client->catchExceptions(true);
@@ -410,9 +417,9 @@ class ApplicationTest extends WebTestCase
     {
         $em = $this->em();
         $share = $em->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
-        $em->persist((new CvViews())->setCvShareId($share->getId())->setViewedAt(new \DateTime('-91 days')));
-        $em->persist((new CvViews())->setCvShareId($share->getId())->setViewedAt(null));
-        $em->persist((new CvViews())->setCvShareId($share->getId())->setViewedAt(new \DateTime('-1 day')));
+        $em->persist((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime('-91 days')));
+        $em->persist((new CvViews())->setCvShare($share)->setViewedAt(null));
+        $em->persist((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime('-1 day')));
         $em->flush();
         $directory = static::$kernel->getCacheDir().'/attempts';
         if (!is_dir($directory)) {
@@ -594,7 +601,7 @@ class ApplicationTest extends WebTestCase
         $this->seedCatalogue();
         $templateId = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive'])->getId();
         $cv = $this->em()->find(CvInstances::class, $this->cvId);
-        $cv->setTemplateId($templateId);
+        $cv->setTemplate($this->em()->find(CvTemplates::class, $templateId));
         $this->em()->flush();
         $this->client->catchExceptions(true);
         $this->loginOwner();
@@ -619,8 +626,8 @@ class ApplicationTest extends WebTestCase
         }
         $em = $this->em();
         $cv = $em->find(CvInstances::class, $this->cvId);
-        $cv->setTemplateId($ids['etudiant'])->setSectionsVisibility(null);
-        $education = (new \App\Entity\Educations())->setProfileId($this->profileId)->setInstitution('École fictive')->setDegree('Diplôme fictif');
+        $cv->setTemplate($em->find(CvTemplates::class, $ids['etudiant']))->setSectionsVisibility(null);
+        $education = (new \App\Entity\Educations())->setProfile($this->em()->find(Profiles::class, $this->profileId))->setInstitution('École fictive')->setDegree('Diplôme fictif');
         $em->persist($education);
         $em->flush();
         $presentation = static::getContainer()->get(\App\Service\CvPresentation::class)->build($em->find(Profiles::class, $this->profileId), $cv, true);
@@ -652,7 +659,7 @@ class ApplicationTest extends WebTestCase
         self::assertResponseStatusCodeSame(303);
         $this->client->followRedirect();
         self::assertSelectorExists('.theme-classique:not(.is-preview)');
-        self::assertSame(2, $this->em()->getRepository(CvInstances::class)->count(['profile_id' => $this->profileId]));
+        self::assertSame(2, $this->em()->getRepository(CvInstances::class)->count(['profile' => $this->profileId]));
     }
 
     public function testDeletingAccountRemovesItsPurchasesAndLateWebhookDoesNotRestoreThem(): void
@@ -676,7 +683,7 @@ class ApplicationTest extends WebTestCase
     {
         $this->seedCatalogue();
         $template = $this->em()->getRepository(CvTemplates::class)->findOneBy(['slug' => 'executive']);
-        $purchase = (new \App\Entity\TemplatePurchases($this->ownerId, $template->getId(), 390))->setCheckoutSessionId('cs_test_fixture');
+        $purchase = (new \App\Entity\TemplatePurchases($this->em()->find(Users::class, $this->ownerId), $template, 390))->setCheckoutSessionId('cs_test_fixture');
         $this->em()->persist($purchase);
         $this->em()->flush();
         return [$template->getId(), [
