@@ -62,9 +62,11 @@ class DomainRulesTest extends TestCase
         $property = new \ReflectionProperty(Users::class, 'id');
         $property->setValue($user, 42);
         $token = new UsernamePasswordToken($user, 'main', ['ROLE_USER']);
+        $other = new Users();
+        $property->setValue($other, 43);
         $voter = new ProfileVoter();
-        self::assertSame(1, $voter->vote($token, (new Profiles())->setUserId(42), ['PROFILE_EDIT']));
-        self::assertSame(-1, $voter->vote($token, (new Profiles())->setUserId(43), ['PROFILE_EDIT']));
+        self::assertSame(1, $voter->vote($token, (new Profiles())->setUser($user), ['PROFILE_EDIT']));
+        self::assertSame(-1, $voter->vote($token, (new Profiles())->setUser($other), ['PROFILE_EDIT']));
     }
 
     public function testSessionSerializationDoesNotContainPasswordHash(): void

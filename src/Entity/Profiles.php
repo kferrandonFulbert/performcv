@@ -17,8 +17,9 @@ class Profiles
     #[ORM\GeneratedValue(strategy: "IDENTITY")]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $user_id = null;
+    #[ORM\ManyToOne(targetEntity: Users::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_profiles_user_id')]
+    private ?Users $user = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
@@ -52,14 +53,19 @@ class Profiles
         return $this->id;
     }
 
-    public function getUserId(): ?int
+    public function getUser(): ?Users
     {
-        return $this->user_id;
+        return $this->user;
     }
 
-    public function setUserId(int $user_id): static
+    public function getUserId(): ?int
     {
-        $this->user_id = $user_id;
+        return $this->user?->getId();
+    }
+
+    public function setUser(Users $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

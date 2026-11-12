@@ -16,8 +16,9 @@ class CvViews
     #[ORM\GeneratedValue(strategy: "IDENTITY")]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $cv_share_id = null;
+    #[ORM\ManyToOne(targetEntity: CvShares::class)]
+    #[ORM\JoinColumn(name: 'cv_share_id', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT', foreignKeyName: 'fk_cv_views_cv_share_id')]
+    private ?CvShares $cv_share = null;
 
     #[ORM\Column(length: 45, nullable: true)]
     private ?string $ip_address = null;
@@ -36,14 +37,19 @@ class CvViews
         return $this->id;
     }
 
-    public function getCvShareId(): ?int
+    public function getCvShare(): ?CvShares
     {
-        return $this->cv_share_id;
+        return $this->cv_share;
     }
 
-    public function setCvShareId(int $cv_share_id): static
+    public function getCvShareId(): ?int
     {
-        $this->cv_share_id = $cv_share_id;
+        return $this->cv_share?->getId();
+    }
+
+    public function setCvShare(CvShares $cv_share): static
+    {
+        $this->cv_share = $cv_share;
 
         return $this;
     }

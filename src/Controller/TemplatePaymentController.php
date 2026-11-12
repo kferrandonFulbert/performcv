@@ -18,7 +18,7 @@ class TemplatePaymentController extends AbstractController
     public function buy(Request $request, int $id, int $templateId, WorkspaceRepository $data, TemplatePayment $payments, #[Autowire('%performcv.public_origin%')] string $origin): Response
     {
         $cv = $data->find(CvInstances::class, $id) ?? throw $this->createNotFoundException();
-        $profile = $data->find(Profiles::class, $cv->getProfileId()) ?? throw $this->createNotFoundException();
+        $profile = $cv->getProfile() ?? throw $this->createNotFoundException();
         $this->denyAccessUnlessGranted('PROFILE_EDIT', $profile);
         if (!$this->isCsrfTokenValid('buy_template_'.$id.'_'.$templateId, $request->request->getString('_token'))) {
             throw $this->createAccessDeniedException('Le formulaire a expiré.');

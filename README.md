@@ -12,6 +12,7 @@ gratuits et six modèles en achat unique, avec confirmation Stripe côté serveu
 | Installer ou mettre à jour le site, commandes de production | [Mise en production](docs/mise-en-production.md) |
 | Modèles, droits d’utilisation et configuration Stripe | [Modèles et paiements](docs/modeles-et-paiements.md) |
 | Purge, conservation, sauvegardes et demandes de droits | [Exploitation des données personnelles](docs/exploitation-donnees-personnelles.md) |
+| Associations Doctrine et migration MySQL | [Intégrité des relations](docs/associations-doctrine.md) |
 | Canonical, robots.txt et sitemap | [SEO](docs/seo.md) |
 
 ## Socle
