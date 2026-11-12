@@ -7,7 +7,7 @@ namespace App\Controller;
 use App\Entity\{CvInstances, CvViews, Profiles, Users};
 use App\Form\UnlockType;
 use App\Repository\WorkspaceRepository;
-use App\Service\{CookieConsent, CvPresentation, ShareAccess, WorkspaceWriter};
+use App\Service\{CvPresentation, ShareAccess, WorkspaceWriter};
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\{Request, Response};
@@ -49,7 +49,7 @@ class PublicController extends AbstractController
     }
 
     #[Route('/s/{token}', name: 'app_public_share', requirements: ['token' => '[a-f0-9]{64}'], methods: ['GET', 'POST'])]
-    public function share(Request $request, string $token, WorkspaceRepository $data, ShareAccess $access, CvPresentation $presentation, WorkspaceWriter $writer, PasswordHasherFactoryInterface $hashers, CookieConsent $consent): Response
+    public function share(Request $request, string $token, WorkspaceRepository $data, ShareAccess $access, CvPresentation $presentation, WorkspaceWriter $writer, PasswordHasherFactoryInterface $hashers): Response
     {
         $share = $data->share($token) ?? throw $this->createNotFoundException();
         if (!$access->active($share)) {
@@ -73,13 +73,11 @@ class PublicController extends AbstractController
 
             return $this->render('shared/form.html.twig', ['form' => $form, 'title' => 'Ce CV est protégé', 'eyebrow' => 'Accès sur invitation', 'back' => $this->generateUrl('app_home'), 'button' => 'Consulter le CV']);
         }
-        // Optional first-party measurement requires a current, signed analytics choice.
-        $viewKey = 'viewed_share_'.$share->getId();
-        if ($request->isMethod('GET') && ($consent->preferences($request)['analytics'] ?? false) && $session->get($viewKey, 0) < time()) {
-            $writer->save((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime()));
-            $session->set($viewKey, time() + 86400);
-        }
+        // Count successful displays without identifying or tracking the visitor.
         $response = $this->render('cv/public.html.twig', $presentation->build($profile, $cv));
+        if ($request->isMethod('GET')) {
+            $writer->save((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime()));
+        }
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
 
         return $response;

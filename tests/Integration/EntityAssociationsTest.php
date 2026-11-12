@@ -196,7 +196,9 @@ final class EntityAssociationsTest extends TestCase
         $em->find(\App\Entity\CvShares::class, $share->getId());
         $em->find(\App\Entity\CvViews::class, $view->getId());
         $em->find(\App\Entity\TemplatePurchases::class, $purchase->getId());
-        (new \App\Service\WorkspaceWriter($em, new \App\Service\ProfilePhoto(dirname(__DIR__, 2), 'test')))->deleteAccount($lazyUser);
+        $context = new \App\Service\AuditContext(new \Symfony\Component\HttpFoundation\RequestStack(), new \Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage());
+        $audit = new \App\Service\AuditTrail($em, $context);
+        (new \App\Service\WorkspaceWriter($em, new \App\Service\ProfilePhoto(dirname(__DIR__, 2), 'test'), $audit, $context))->deleteAccount($lazyUser);
         foreach (['users', 'profiles', 'experiences', 'cv_instances', 'cv_shares', 'cv_views', 'template_purchases'] as $table) {
             self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table));
         }

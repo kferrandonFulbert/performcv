@@ -95,7 +95,7 @@ Ces règles guident les implémentations ; les simples getters et setters ne suf
 
 La limitation des tentatives utilise un subscriber et des fichiers verrouillés par IP (empreinte dans le nom), sur un seul hôte. Ne pas la considérer comme distribuée. Le partage protégé est déverrouillé pour une heure et son état est revérifié à chaque accès. Les sections masquées sont exclues des lectures du rendu. Les données HTML/CSS libres sont ignorées par les présentations internes.
 
-Les informations de l’éditeur sont centralisées dans le paramètre `performcv.legal`. Les pages `/mentions-legales`, `/confidentialite`, `/conditions-utilisation` et `/cookies` décrivent le service, également accessible aux mineurs. `CookieConsent` signe les préférences pour six mois ; l’accord aux statistiques internes exige une déclaration de majorité. Sans accord valide, aucun nouveau `CvViews` ni repère de comptage en session n’est créé. Le refus ne bloque pas la consultation des CV et efface les repères de comptage de la session. Les nombres de consultations sont donc partiels. Le marketing et les balises Google restent désactivés ; toute activation exige une nouvelle information et une nouvelle version de consentement. Les tâches de conservation et leurs limites d’exploitation sont documentées dans `docs/exploitation-donnees-personnelles.md` ; ne pas annoncer une tâche cron ou une expiration de sauvegardes comme active sans preuve d’hébergement.
+Les informations de l’éditeur sont centralisées dans le paramètre `performcv.legal`. Les pages `/mentions-legales`, `/confidentialite`, `/conditions-utilisation` et `/cookies` décrivent le service, également accessible aux mineurs. Le compteur de consultations fonctionne côté serveur sans consentement, cookie de mesure ni repère de comptage en session. Chaque affichage GET réussi d’un CV partagé enregistre uniquement le lien et la date, sans IP, user-agent, référent ni identifiant du visiteur. Les rechargements sont comptés ; les totaux ne représentent pas des visiteurs uniques. La page `/cookies` est informative ; les anciens cookies `performcv_consent` sont ignorés pour le comptage. Le marketing et les balises Google restent désactivés ; toute activation exige une nouvelle information et une nouvelle version de consentement. Les tâches de conservation et leurs limites d’exploitation sont documentées dans `docs/exploitation-donnees-personnelles.md` ; ne pas annoncer une tâche cron ou une expiration de sauvegardes comme active sans preuve d’hébergement.
 
 Pour toute fonctionnalité concernée :
 
@@ -118,6 +118,16 @@ Pour une question ou une modification dépendant d'une API de bibliothèque, d'u
 4. Si une signature, un défaut ou un comportement interne reste ambigu et que `query-code` est disponible, rechercher le symbole ou le message puis lire les lignes indiquées. Citer le fichier et les lignes utilisés. Limiter à six appels ; si l'indexation est en cours, réessayer au maximum deux fois.
 
 Cette recherche n'est pas nécessaire pour une simple lecture du modèle, une modification documentaire ou un refactoring indépendant d'une API externe. Ne pas appliquer automatiquement une recommandation destinée à une version plus récente.
+
+## Journalisation des actions
+
+`AuditEvents` / `audit_events` contient uniquement date UTC, acteur nullable, action et référence de ressource, identifiant de corrélation. Ses références sont scalaires, sans clé étrangère, pour préserver les traces après suppression ; cette exception volontaire ne modifie pas les associations métier. Le modèle est en lecture seule, sans setters. Les identifiants du journal restent des données de traçabilité, pas des statistiques anonymes.
+
+`WorkspaceWriter` et `TemplatePayment` écrivent la trace métier dans la même transaction que l’opération. Toute nouvelle écriture directe ou en masse doit intégrer explicitement `AuditTrail`. L’inscription est attribuée au nouveau compte ; un webhook validé a un acteur nul. Les consultations publiques, aperçus et formulaires invalides ne produisent pas de succès métier. Les suppressions de parents couvrent leurs descendants sans une ligne par enfant supprimé en masse.
+
+`SecurityAuditSubscriber` journalise les connexions, déconnexions, réponses 403 et 429 dans le canal JSON `audit_security`, hors du flux conditionnel des erreurs. Ne jamais ajouter email saisi, contenu de CV, mot de passe/hash, IP, URL, cookie, token ou requête complète au contexte des journaux dédiés. Une panne de ce fichier n’empêche pas la déconnexion ; une panne de l’audit en base annule l’écriture métier.
+
+La migration `Version20261112000200` ajoute la table. Les commandes `app:audit:list` (filtre acteur, 100 lignes maximum) et `app:audit:purge` (`--dry-run`) sont réservées à l’exploitation. Conservation cible : six mois, avec purge des fichiers de sécurité anciens. Aucune route web d’audit, aucun cron et aucun collecteur externe ne sont supposés actifs. Voir `docs/journalisation.md` pour les limites d’intégrité et les droits d’exploitation.
 
 ## Vérification et livraison
 

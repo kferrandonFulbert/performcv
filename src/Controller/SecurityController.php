@@ -46,7 +46,7 @@ class SecurityController extends AbstractController
                     ->setCreatedAt(new \DateTime())->setUpdatedAt(new \DateTime());
                 $user->setPasswordHash($hasher->hashPassword($user, $values['password']));
                 try {
-                    $writer->save($user);
+                    $writer->save($user, 'account.created', $user);
                     $this->addFlash('success', 'Votre compte est créé. Vous pouvez vous connecter.');
 
                     return $this->redirectToRoute('app_login', status: 303);
@@ -90,7 +90,7 @@ class SecurityController extends AbstractController
             /** @var Users $user */
             $user = $this->getUser();
             $user->setPasswordHash($hasher->hashPassword($user, $form->get('newPassword')->getData()))->setUpdatedAt(new \DateTime());
-            $writer->save($user);
+            $writer->save($user, 'account.password_changed');
             $tokens->setToken(null);
             $request->getSession()->invalidate();
             $this->addFlash('success', 'Mot de passe modifié. Connectez-vous à nouveau.');

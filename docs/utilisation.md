@@ -113,15 +113,14 @@ dans des espaces où leur accès n’est pas souhaité.
 
 ## 7. Comprendre les consultations et les cookies
 
-Le compteur de chaque lien est partiel : seules les consultations avec un accord
-valide aux statistiques internes sont enregistrées, au plus une fois par session
-sur une période de 24 heures. Ce n’est pas un nombre de personnes uniques.
+Le compteur anonyme de chaque lien enregistre chaque affichage réussi, y compris
+les rechargements, sans demander de consentement. Il ne stocke ni IP, ni
+user-agent, ni référent, ni identifiant du visiteur et n’utilise aucun cookie de
+mesure ou repère de comptage en session. Ce n’est pas un nombre de visiteurs uniques.
 Les anciennes consultations peuvent être supprimées par la purge de conservation.
 
-Le lien **Gérer mes cookies** permet de refuser, d’accepter ou de personnaliser
-les préférences. L’accord aux statistiques exige une déclaration de majorité.
-Le refus ne bloque pas la consultation du CV. Le marketing et les balises Google
-restent désactivés dans le code actuel.
+Le lien **Cookies et traceurs** décrit les cookies nécessaires au service.
+Le marketing et les balises Google restent désactivés dans le code actuel.
 
 ## 8. Supprimer ses données
 
@@ -144,7 +143,7 @@ pour les droits et les coordonnées de contact.
 | Aperçu indisponible | Vérifier les champs et utiliser Prévisualiser. Vérifier la connexion si le problème persiste. |
 | Enregistrement indisponible sur un modèle payant | Vérifier que l’achat est confirmé sur le compte connecté ou sélectionner un modèle gratuit. |
 | Lien introuvable | Vérifier l’adresse, l’expiration et l’activation auprès du propriétaire. |
-| Compteur nul malgré un partage | Les refus de statistiques et les visites répétées peuvent ne pas être comptés. |
+| Compteur nul malgré un partage | Utiliser le lien de partage actif : les aperçus privés et les liens inaccessibles ne sont pas comptés. |
 | PDF différent de l’aperçu | Le rendu PDF est volontairement linéaire pour faciliter la lecture par les ATS. |
 | Connexion temporairement bloquée | Attendre la fin de la limitation des tentatives ; éviter les essais répétés. |
 
