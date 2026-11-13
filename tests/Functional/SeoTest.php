@@ -42,7 +42,7 @@ final class SeoTest extends WebTestCase
             self::assertFileExists(dirname(__DIR__, 2).'/public'.$source);
             self::assertNotFalse(simplexml_load_file(dirname(__DIR__, 2).'/public'.$source));
         }
-        $client->request('GET', 'http://untrusted.example/sitemap.xml');
+        $client->request('GET', 'http://untrusted.example/sitemap-pages.xml');
         $xml = simplexml_load_string($client->getResponse()->getContent());
         $xml->registerXPathNamespace('image', 'http://www.google.com/schemas/sitemap-image/1.1');
         self::assertSame(array_map(static fn ($source) => 'https://performcv.fr'.$source, $sources), array_map('strval', $xml->xpath('//image:loc')));
@@ -69,8 +69,8 @@ final class SeoTest extends WebTestCase
         $client->request('GET', 'http://untrusted.example/robots.txt');
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Type', 'text/plain; charset=UTF-8');
-        self::assertSame("User-agent: *\nAllow: /\n\nSitemap: https://performcv.fr/sitemap.xml\nSitemap: https://performcv.fr/sitemap-cv.xml\n", $client->getResponse()->getContent());
-        $client->request('GET', 'http://untrusted.example/sitemap.xml');
+        self::assertSame("User-agent: *\nAllow: /\n\nSitemap: https://performcv.fr/sitemap.xml\n", $client->getResponse()->getContent());
+        $client->request('GET', 'http://untrusted.example/sitemap-pages.xml');
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Type', 'application/xml; charset=UTF-8');
         $xml = simplexml_load_string($client->getResponse()->getContent());
@@ -82,16 +82,17 @@ final class SeoTest extends WebTestCase
             'https://performcv.fr/confidentialite',
             'https://performcv.fr/conditions-utilisation',
             'https://performcv.fr/cookies',
-            'https://performcv.fr/cv-etudiant',
-            'https://performcv.fr/cv-alternance',
-            'https://performcv.fr/cv-stage',
-            'https://performcv.fr/cv-developpeur-web',
-            'https://performcv.fr/cv-sans-experience',
-            'https://performcv.fr/cv-ats',
-            'https://performcv.fr/exemple-cv/bts-sio',
-            'https://performcv.fr/lettre-motivation/alternance',
-            'https://performcv.fr/annuaire-cv',
         ], array_map(strval(...), $xml->xpath('/s:urlset/s:url/s:loc')));
+
+        $home = $client->request('GET', 'https://performcv.fr/');
+        $menuUrls = $home->filter('.advice-menu a')->each(static fn ($link) => $link->link()->getUri());
+        self::assertCount(8, $menuUrls);
+        $client->request('GET', 'http://untrusted.example/sitemap-conseils-cv.xml');
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('Content-Type', 'application/xml; charset=UTF-8');
+        $xml = simplexml_load_string($client->getResponse()->getContent());
+        $xml->registerXPathNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        self::assertSame($menuUrls, array_map(strval(...), $xml->xpath('/s:urlset/s:url/s:loc')));
     }
 
     public function testGuidesHaveDistinctContentExamplesAndWorkingEntryPoints(): void

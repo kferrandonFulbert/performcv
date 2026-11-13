@@ -10,9 +10,17 @@ final class PublicSeo
 {
     private const ROUTES = [
         'app_home', 'app_legal', 'app_privacy', 'app_terms', 'app_cookies',
-        'app_cv_etudiant', 'app_cv_alternance', 'app_cv_stage', 'app_cv_developpeur_web',
-        'app_cv_sans_experience', 'app_cv_ats', 'app_cv_bts_sio', 'app_lettre_alternance',
-        'app_cv_directory',
+    ];
+
+    public const GUIDE_LINKS = [
+        'app_cv_etudiant' => 'CV étudiant',
+        'app_cv_alternance' => 'CV alternance',
+        'app_cv_stage' => 'CV stage',
+        'app_cv_developpeur_web' => 'CV développeur web',
+        'app_cv_sans_experience' => 'CV sans expérience',
+        'app_cv_ats' => 'CV ATS',
+        'app_cv_bts_sio' => 'Exemple CV BTS SIO',
+        'app_lettre_alternance' => 'Lettre de motivation alternance',
     ];
 
     public function __construct(private UrlGeneratorInterface $urls, private string $origin)
@@ -24,12 +32,17 @@ final class PublicSeo
 
     public function canonical(?string $route): ?string
     {
-        return in_array($route, self::ROUTES, true) ? $this->url($route) : null;
+        return ($route === 'app_cv_directory' || isset(self::GUIDE_LINKS[$route]) || in_array($route, self::ROUTES, true)) ? $this->url($route) : null;
     }
 
     public function sitemapUrls(): array
     {
         return array_map($this->url(...), self::ROUTES);
+    }
+
+    public function guideSitemapUrls(): array
+    {
+        return array_map($this->url(...), array_keys(self::GUIDE_LINKS));
     }
 
     public function sitemapImages(string $pageUrl): array

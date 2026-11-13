@@ -13,6 +13,8 @@ use Doctrine\ORM\EntityManagerInterface;
 final class CvDirectoryRepository
 {
     public const PAGE_SIZE = 20;
+    public const MAX_PAGE = 10000;
+    public const SITEMAP_SIZE = 1000;
 
     public function __construct(private EntityManagerInterface $em)
     {
@@ -55,7 +57,7 @@ final class CvDirectoryRepository
 
     public function sitemapIds(int $page): array
     {
-        return $this->base()->select('cv.id')->orderBy('cv.id')->setFirstResult(($page - 1) * 1000)->setMaxResults(1000)->executeQuery()->fetchFirstColumn();
+        return $this->base()->select('cv.id')->orderBy('cv.id')->setFirstResult(($page - 1) * self::SITEMAP_SIZE)->setMaxResults(self::SITEMAP_SIZE)->executeQuery()->fetchFirstColumn();
     }
 
     private function fold(string $expression): string
@@ -83,7 +85,7 @@ final class CvDirectoryRepository
 
     public function search(string $search, int $page): array
     {
-        if ($page < 1 || $page > 10000) { throw new \InvalidArgumentException('Page invalide.'); }
+        if ($page < 1 || $page > self::MAX_PAGE) { throw new \InvalidArgumentException('Page invalide.'); }
         $terms = DirectorySearch::terms($search);
         $query = $this->base();
         $platform = $this->em->getConnection()->getDatabasePlatform();

@@ -125,7 +125,7 @@ Cette recherche n'est pas nécessaire pour une simple lecture du modèle, une mo
 
 `/annuaire-cv` recherche dans les identités et contenus visibles uniquement ; les sections masquées ne participent pas au matching ni à la complétude. Correspondance exacte du nom prioritaire, puis score : pertinence 60, complétude 25, fraîcheur 10, bonus modèle payant 5 ; vues à zéro car elles incluent les rechargements. Résultats paginés et tris stables. Les filtres JSON sont adaptés à SQLite/MySQL, sans considérer `1` ou la chaîne `true` comme le booléen `true`.
 
-`/cv-public/{id}` est la fiche indexable avec canonique sur l’origine de confiance ; `/s/{token}` reste en `noindex`. Les recherches sont en `noindex, follow`. `/sitemap-cv.xml` référence des sitemaps par lots de 1 000 CV admissibles. Aucun jeton n’y est publié. Migration : `Version20261113000100`. Voir `docs/annuaire-cv.md` pour le calcul, les limites et l’exploitation.
+`/cv-public/{id}` est la fiche indexable avec canonique sur l’origine de confiance ; `/s/{token}` utilise uniquement `noarchive`. Les recherches n’imposent aucune directive robots. `/sitemap-cv.xml` référence des sitemaps par lots de 1 000 CV admissibles. Aucun jeton n’y est publié. Migration : `Version20261113000100`. Voir `docs/annuaire-cv.md` pour le calcul, les limites et l’exploitation.
 
 ## Journalisation des actions
 

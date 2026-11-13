@@ -19,7 +19,7 @@ ne sont pas ajoutés au sitemap et ne reçoivent pas de canonical marketing.
 
 `/robots.txt` autorise l'exploration et annonce l'adresse absolue de
 `/sitemap.xml`. Il ne bloque pas les chemins privés ou partagés : les robots
-peuvent ainsi lire leurs réponses et directives noindex existantes.
+peuvent ainsi lire les réponses de l’application.
 Robots.txt ne constitue pas un contrôle d'accès ou une garantie de désindexation.
 
 ## Résultats
@@ -47,4 +47,4 @@ Sources officielles consultées le 11 novembre 2026 :
 
 ## Annuaire ajouté le 13 novembre 2026
 
-Les constats ci-dessus décrivent le retest historique. L’annuaire `/annuaire-cv` et les fiches `/cv-public/{id}` ajoutent désormais des pages publiques sur publication volontaire. Les recherches restent en `noindex`, les fiches admissibles ont une canonique sur l’origine de confiance et sont découvertes via `/sitemap-cv.xml`. Les liens `/s/{token}` restent en `noindex`. Voir [annuaire, classement et limites](annuaire-cv.md).
+Les constats ci-dessus décrivent le retest historique. L’annuaire `/annuaire-cv` et les fiches `/cv-public/{id}` ajoutent désormais des pages publiques sur publication volontaire. Les recherches n’imposent aucune directive robots, les fiches admissibles ont une canonique sur l’origine de confiance et sont découvertes via `/sitemap-cv.xml`. Les liens `/s/{token}` utilisent uniquement `noarchive`. Voir [annuaire, classement et limites](annuaire-cv.md).
