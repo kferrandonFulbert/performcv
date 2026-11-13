@@ -32,6 +32,15 @@ final class PublicSeo
         return array_map($this->url(...), self::ROUTES);
     }
 
+    public function sitemapImages(string $pageUrl): array
+    {
+        // Editorial illustrations only: never add uploaded portraits or CV tokens.
+        return $pageUrl === $this->url('app_home') ? [
+            $this->origin.'/images/exemple-cv-classique-ats.svg',
+            $this->origin.'/images/exemple-cv-moderne.svg',
+        ] : [];
+    }
+
     public function url(string $route, array $parameters = []): string
     {
         // Only the path comes from the router: never trust the request's host or scheme.

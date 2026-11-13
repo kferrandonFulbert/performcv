@@ -102,7 +102,12 @@ class ProfileController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $oldPhoto = $profile->getProfilePictureUrl();
             $photo = $form->get('photo')->getData();
-            $newPhoto = $photo ? $this->photos->store($photo) : ($form->get('removePhoto')->getData() ? null : $oldPhoto);
+            try {
+                $newPhoto = $photo ? $this->photos->store($photo) : ($form->get('removePhoto')->getData() ? null : $oldPhoto);
+            } catch (\InvalidArgumentException $error) {
+                $form->get('photo')->addError(new FormError($error->getMessage()));
+                return $this->render('shared/form.html.twig', ['form' => $form, 'title' => $title, 'eyebrow' => 'Votre parcours', 'back' => $this->generateUrl('app_dashboard'), 'button' => 'Enregistrer le profil', 'profile_photo' => $this->photos->dataUri($oldPhoto)]);
+            }
             $profile->setProfilePictureUrl($newPhoto);
             try {
                 $this->writer->save($profile);

@@ -8,6 +8,46 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class SeoTest extends WebTestCase
 {
+    public function testOnlyAnonymousEditorialResponsesAllowSharedCaching(): void
+    {
+        $client = static::createClient();
+        foreach (['/', '/cv-ats'] as $path) {
+            $client->request('GET', $path);
+            $response = $client->getResponse();
+            self::assertTrue($response->headers->hasCacheControlDirective('public'), $response->headers->get('Cache-Control').' cookies='.count($response->headers->getCookies()).' vary='.implode(',', $response->getVary()));
+            self::assertSame(300, $response->getMaxAge());
+            self::assertContains('Cookie', $response->getVary());
+            self::assertEmpty($response->headers->getCookies());
+        }
+        $client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie('visitor', 'fixture'));
+        $client->request('GET', '/');
+        self::assertTrue($client->getResponse()->headers->hasCacheControlDirective('no-store'));
+        $client->request('GET', '/connexion');
+        self::assertTrue($client->getResponse()->headers->hasCacheControlDirective('private'));
+    }
+
+    public function testPublicIllustrationsHaveContextAndAreTheOnlySitemapImages(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/');
+        self::assertResponseIsSuccessful();
+        $sources = $crawler->filter('.public-model-grid img')->each(static function ($image): string {
+            self::assertNotEmpty($image->attr('alt'));
+            self::assertSame('640', $image->attr('width'));
+            self::assertSame('820', $image->attr('height'));
+            return $image->attr('src');
+        });
+        self::assertCount(2, $sources);
+        foreach ($sources as $source) {
+            self::assertFileExists(dirname(__DIR__, 2).'/public'.$source);
+            self::assertNotFalse(simplexml_load_file(dirname(__DIR__, 2).'/public'.$source));
+        }
+        $client->request('GET', 'http://untrusted.example/sitemap.xml');
+        $xml = simplexml_load_string($client->getResponse()->getContent());
+        $xml->registerXPathNamespace('image', 'http://www.google.com/schemas/sitemap-image/1.1');
+        self::assertSame(array_map(static fn ($source) => 'https://performcv.fr'.$source, $sources), array_map('strval', $xml->xpath('//image:loc')));
+    }
+
     public function testCanonicalsIgnoreQueryAndUntrustedHost(): void
     {
         $client = static::createClient();

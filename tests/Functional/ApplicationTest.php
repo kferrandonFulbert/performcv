@@ -693,7 +693,8 @@ class ApplicationTest extends WebTestCase
     public function testProfilePhotoUploadVisibilityAndRemoval(): void
     {
         $file = tempnam(sys_get_temp_dir(), 'photo');
-        file_put_contents($file, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='));
+        // Generate decodable pixels; the former base64 fixture had an invalid PNG CRC.
+        imagepng(imagecreatetruecolor(1, 1), $file);
         $this->loginOwner();
         $photos = static::getContainer()->get(\App\Service\ProfilePhoto::class);
         $name = null;

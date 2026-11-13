@@ -3,8 +3,8 @@
 {% block description %}<meta name="description" content="Créez votre CV en ligne gratuitement : rubriques personnalisables, PDF sur une colonne pour les ATS et lien de partage. Commencez avec PerformCV.">{% endblock %}
 {% block body %}
 <section class="hero">
-    <div><p class="eyebrow">CRÉATION DE CV EN LIGNE GRATUIT</p><h1>Créez votre CV<br>en ligne,<br><em>gratuitement.</em></h1><p class="lead">Présentez votre parcours avec un CV personnalisé et un PDF conçu pour faciliter la lecture par les logiciels de recrutement (ATS). Renseignez vos expériences, choisissez vos rubriques et préparez votre candidature.</p><div class="actions"><a class="button" href="{{ path(app.user ? 'app_dashboard' : 'app_register') }}">Créer mon CV gratuitement <span aria-hidden="true">↗</span></a><a class="text-link" href="#cv-ats">Préparer un CV pour les ATS ↓</a></div><p class="fine">Création et enregistrement en PDF gratuits, avec un compte. Vous choisissez les rubriques et les informations à partager.</p></div>
-    <div class="hero-art" aria-label="Exemple de présentation de CV"><span class="floating-label">VOTRE PARCOURS. VOTRE SIGNATURE.</span><div class="sample-cv"><div class="sample-monogram">AL</div><h2>Alex Laurent</h2><p class="sample-job">Designer de produits numériques</p><hr><p class="eyebrow">PROFIL</p><p>Imaginer des expériences utiles,<br>claires et accessibles.</p><p class="eyebrow">EXPÉRIENCE</p><h3>Product designer</h3><p>Studio indépendant · 2022 — Aujourd’hui</p><div class="sample-lines"><i></i><i></i><i></i></div><p class="eyebrow">COMPÉTENCES</p><div class="tags"><span>Design produit</span><span>Recherche</span><span>Prototypage</span></div></div><span class="art-caption">01 / UNE HISTOIRE QUI PREND FORME</span></div>
+    <div><p class="eyebrow">CRÉATION DE CV EN LIGNE GRATUIT</p><h1>Créez votre CV<br>en ligne,<br><em>gratuitement.</em></h1><p class="lead">Présentez votre parcours avec un CV personnalisé et un PDF conçu pour faciliter la lecture par les logiciels de recrutement (ATS). Renseignez vos expériences, choisissez vos rubriques et préparez votre candidature.</p><div class="actions"><a class="button" href="{{ path(app.request.cookies.count and app.user ? 'app_dashboard' : 'app_register') }}">Créer mon CV gratuitement <span aria-hidden="true">↗</span></a><a class="text-link" href="#cv-ats">Préparer un CV pour les ATS ↓</a></div><p class="fine">Création et enregistrement en PDF gratuits, avec un compte. Vous choisissez les rubriques et les informations à partager.</p></div>
+    <div class="hero-art"><span class="floating-label">VOTRE PARCOURS. VOTRE SIGNATURE.</span><div class="sample-cv"><div class="sample-monogram">AL</div><h2>Alex Laurent</h2><p class="sample-job">Designer de produits numériques</p><hr><p class="eyebrow">PROFIL</p><p>Imaginer des expériences utiles,<br>claires et accessibles.</p><p class="eyebrow">EXPÉRIENCE</p><h3>Product designer</h3><p>Studio indépendant · 2022 — Aujourd’hui</p><div class="sample-lines"><i></i><i></i><i></i></div><p class="eyebrow">COMPÉTENCES</p><div class="tags"><span>Design produit</span><span>Recherche</span><span>Prototypage</span></div></div><span class="art-caption">01 / UNE HISTOIRE QUI PREND FORME</span></div>
 </section>
 <section id="comment" class="intro-section"><p class="eyebrow">DE L’EXPÉRIENCE À L’OPPORTUNITÉ</p><h2>Comment créer un CV en ligne gratuitement ?</h2><div class="feature-grid"><article><span class="step">01</span><h3>Complétez votre profil</h3><p>Expériences, formations, projets et compétences : un profil complet, facile à faire évoluer.</p></article><article><span class="step">02</span><h3>Personnalisez votre CV</h3><p>Choisissez une présentation, une palette et les rubriques utiles à votre candidature : expériences, formations, compétences, langues, projets ou certifications.</p></article><article><span class="step">03</span><h3>Enregistrez votre CV en PDF</h3><p>Depuis votre CV, utilisez « Imprimer / PDF (ATS) » puis « Enregistrer au format PDF » dans votre navigateur. Vous pouvez aussi créer un lien de partage, avec expiration ou mot de passe si nécessaire.</p></article></div></section>
 <section id="cv-ats" class="intro-section home-content" aria-labelledby="ats-title">
@@ -18,6 +18,14 @@
     </div>
     <p>Avant de postuler, vérifiez que le texte du PDF peut être sélectionné et copié dans le bon ordre. Respectez le format et la taille de fichier demandés par l’employeur. Aucun modèle ne garantit une lecture parfaite par tous les ATS ni une sélection pour un entretien.</p>
 </section>
+<section class="intro-section home-content" aria-labelledby="models-title">
+    <h2 id="models-title">Deux présentations de CV gratuites</h2>
+    <p>Classique ATS privilégie une lecture linéaire. Moderne conserve une colonne et apporte des accents bleus. Ces illustrations montrent leur principe de présentation ; votre CV s’adapte à vos rubriques et à votre contenu.</p>
+    <div class="public-model-grid">
+        <figure><img src="/images/exemple-cv-classique-ats.svg" alt="Illustration du CV Classique ATS : profil, expériences, formations et compétences sur une colonne" width="640" height="820" loading="lazy" decoding="async"><figcaption>Classique ATS — une présentation sobre sur une colonne.</figcaption></figure>
+        <figure><img src="/images/exemple-cv-moderne.svg" alt="Illustration du CV Moderne : titres bleus et rubriques professionnelles sur une colonne" width="640" height="820" loading="lazy" decoding="async"><figcaption>Moderne — une présentation minimaliste avec des accents bleus.</figcaption></figure>
+    </div>
+</section>
 <section class="intro-section home-content" aria-labelledby="faq-title">
     <p class="eyebrow">VOS QUESTIONS AVANT DE COMMENCER</p>
     <h2 id="faq-title">Créer un CV gratuit : les questions fréquentes</h2>
@@ -27,7 +35,7 @@
         <details><summary>Comment obtenir mon CV au format PDF ?</summary><p>Ouvrez votre CV et cliquez sur « Imprimer / PDF (ATS) ». Choisissez « Enregistrer au format PDF » dans la fenêtre d’impression et désactivez les en-têtes et pieds de page du navigateur pour éviter l’ajout de la date ou de l’adresse de la page.</p></details>
         <details><summary>Puis-je choisir les informations qui apparaissent sur mon CV ?</summary><p>Oui. Vous choisissez les rubriques visibles pour chaque CV. Les rubriques masquées sont exclues du document partagé et du rendu à imprimer.</p></details>
     </div>
-    <div class="actions"><a class="button" href="{{ path(app.user ? 'app_dashboard' : 'app_register') }}">Créer mon CV gratuitement <span aria-hidden="true">↗</span></a></div>
+    <div class="actions"><a class="button" href="{{ path(app.request.cookies.count and app.user ? 'app_dashboard' : 'app_register') }}">Créer mon CV gratuitement <span aria-hidden="true">↗</span></a></div>
 </section>
 {% include 'guides/_links.html.twig' %}
 {% endblock %}
