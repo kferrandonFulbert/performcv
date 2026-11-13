@@ -10,6 +10,10 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class ResponseHeadersSubscriber implements EventSubscriberInterface
 {
+    public function __construct(private \App\Service\CookieConsent $consent)
+    {
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [KernelEvents::RESPONSE => 'onResponse'];
@@ -27,6 +31,9 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
         $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
         $headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
         $request = $event->getRequest();
+        if ($this->consent->analyticsAllowed($request)) {
+            $headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://www.googletagmanager.com; connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; style-src 'self'; img-src 'self' data: https://www.googletagmanager.com https://*.google-analytics.com; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+        }
         $response = $event->getResponse();
         $editorial = in_array($request->attributes->get('_route'), [
             'app_home', 'app_legal', 'app_privacy', 'app_terms', 'app_cookies',

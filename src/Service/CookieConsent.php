@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\{Cookie, Request};
 final class CookieConsent
 {
     public const COOKIE_NAME = 'performcv_consent';
-    public const POLICY_VERSION = '2026-11-11-v2';
+    public const POLICY_VERSION = '2026-11-13-v3';
 
     public function __construct(#[Autowire('%kernel.secret%')] private string $secret)
     {
@@ -38,6 +38,14 @@ final class CookieConsent
         }
 
         return ['analytics' => $analytics === '1', 'marketing' => $marketing === '1'];
+    }
+
+    public function analyticsAllowed(Request $request): bool
+    {
+        $route = $request->attributes->getString('_route');
+        $editorial = in_array($route, ['app_home', 'app_legal', 'app_privacy', 'app_terms'], true)
+            || isset(PublicSeo::GUIDE_LINKS[$route]);
+        return $editorial && ($this->preferences($request)['analytics'] ?? false);
     }
 
     public function cookie(bool $analytics, bool $marketing, bool $secure): Cookie

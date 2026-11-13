@@ -120,7 +120,7 @@ mesure ou repère de comptage en session. Ce n’est pas un nombre de visiteurs 
 Les anciennes consultations peuvent être supprimées par la purge de conservation.
 
 Le lien **Cookies et traceurs** décrit les cookies nécessaires au service.
-Le marketing et les balises Google restent désactivés dans le code actuel.
+Les statistiques Google sont facultatives et se choisissent depuis la page Cookies, accessible en pied de page. GTM est chargé uniquement après accord sur l’accueil et les pages de conseils et d’information. La publicité reste désactivée.
 
 ## 8. Supprimer ses données
 
