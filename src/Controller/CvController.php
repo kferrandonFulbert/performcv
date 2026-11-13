@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\{CvInstances, CvShares, CvTemplates, Profiles};
 use App\Form\{CvType, ShareType};
 use App\Repository\WorkspaceRepository;
+use App\Repository\CvDirectoryRepository;
 use App\Service\{CvPresentation, SectionCatalog, WorkspaceWriter, TemplateAccess, StripeCheckout};
 use Symfony\Component\Form\FormError;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,6 +61,26 @@ class CvController extends AbstractController
         $this->addFlash('success', 'Le CV et ses liens de partage ont été supprimés.');
 
         return $this->redirectToRoute('app_profile_show', ['id' => $profile->getId()], 303);
+    }
+
+    #[Route('/cv/{id}/annuaire', name: 'app_cv_directory_publish', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function directoryPublication(Request $request, int $id, CvDirectoryRepository $directory): Response
+    {
+        [$cv] = $this->ownedCv($id);
+        $this->checkToken($request, 'directory_cv_'.$id);
+        $choice = $request->request->getString('publish');
+        if (!in_array($choice, ['0', '1'], true)) { return new Response('Choix invalide.', 400); }
+        $publish = $choice === '1';
+        if ($publish && !$directory->canPublish($id)) {
+            $this->addFlash('error', 'Renseignez vos nom, prénom et titre professionnel, puis créez un lien actif, non expiré et sans mot de passe pour publier ce CV.');
+            return $this->redirectToRoute('app_cv_show', ['id' => $id], 303);
+        }
+        if ($cv->isDirectoryListed() !== $publish) {
+            $cv->setDirectoryListed($publish);
+            $this->writer->save($cv, $publish ? 'cv.directory_published' : 'cv.directory_withdrawn');
+        }
+        $this->addFlash('success', $publish ? 'Votre CV est publié dans l’annuaire et peut être référencé par les moteurs.' : 'Votre CV est retiré de l’annuaire. La disparition des résultats des moteurs peut prendre du temps.');
+        return $this->redirectToRoute('app_cv_show', ['id' => $id], 303);
     }
 
     #[Route('/cv/{id}/partager', name: 'app_share_new', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]

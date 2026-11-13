@@ -1,0 +1,4 @@
+{% extends 'cv/base.html.twig' %}
+{% block title %}CV {{ owner.firstName }} {{ owner.lastName }} — {{ profile.title }} — PerformCV{% endblock %}
+{% block description %}<meta name="description" content="CV de {{ owner.firstName }} {{ owner.lastName }} : {{ profile.title }}. {{ profile.summary|striptags|slice(0, 140) }}">{% endblock %}
+{% block body %}<div class="public-toolbar"><a href="{{ path('app_cv_directory') }}">← Annuaire des CV</a><button class="button secondary" type="button" data-print>Imprimer / PDF (ATS)</button></div>{% include 'cv/_document.html.twig' %}{% endblock %}

@@ -914,6 +914,195 @@ class ApplicationTest extends WebTestCase
         }
     }
 
+    public function testDirectoryRequiresVoluntaryPublicationAndSupportsWithdrawal(): void
+    {
+        $this->client->catchExceptions(true);
+        $this->client->request('GET', '/annuaire-cv');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(0, '.directory-card');
+        $this->client->request('GET', '/cv-public/'.$this->cvId);
+        self::assertResponseStatusCodeSame(404);
+        $this->loginOwner();
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId);
+        $this->client->submit($crawler->selectButton('Publier ce CV dans l’annuaire et autoriser son référencement')->form());
+        self::assertResponseRedirects('/app/cv/'.$this->cvId, 303);
+        self::assertTrue($this->em()->find(CvInstances::class, $this->cvId)->isDirectoryListed());
+        $this->client->request('GET', '/annuaire-cv');
+        self::assertSelectorCount(1, '.directory-card');
+        $crawler = $this->client->request('GET', '/app/cv/'.$this->cvId);
+        $this->client->submit($crawler->selectButton('Retirer de l’annuaire')->form());
+        $this->client->request('GET', '/cv-public/'.$this->cvId);
+        self::assertResponseStatusCodeSame(404);
+        self::assertSame(['cv.directory_published', 'cv.directory_withdrawn'], $this->em()->getConnection()->fetchFirstColumn('SELECT action FROM audit_events ORDER BY id'));
+    }
+
+    public function testDirectorySearchFindsNamesKeywordsAndOnlyVisibleSections(): void
+    {
+        $cv = $this->em()->find(CvInstances::class, $this->cvId);
+        $cv->setDirectoryListed(true);
+        $owner = $this->em()->find(Users::class, $this->ownerId);
+        $owner->setFirstName('Élodie');
+        $this->em()->flush();
+        foreach (['elodie martin', 'MARTIN ELODIE', 'designer produit'] as $query) {
+            $this->client->request('GET', '/annuaire-cv', ['q' => $query]);
+            self::assertResponseIsSuccessful();
+            self::assertSelectorCount(1, '.directory-card');
+            self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow');
+        }
+        $this->client->request('GET', '/annuaire-cv', ['q' => 'SecretCompany']);
+        self::assertSelectorCount(0, '.directory-card');
+        foreach ([1, 'true', []] as $invalidVisibility) {
+            $cv = $this->em()->find(CvInstances::class, $this->cvId);
+            $cv->setSectionsVisibility(['experiences' => $invalidVisibility]);
+            $this->em()->flush();
+            $this->client->request('GET', '/annuaire-cv', ['q' => 'SecretCompany']);
+            self::assertSelectorCount(0, '.directory-card');
+        }
+        $cv = $this->em()->find(CvInstances::class, $this->cvId);
+        $cv->setSectionsVisibility(['experiences' => true]);
+        $this->em()->flush();
+        $this->client->request('GET', '/annuaire-cv', ['q' => 'SecretCompany']);
+        self::assertSelectorCount(1, '.directory-card');
+        foreach (['%', '_', "' OR 1=1 --"] as $query) {
+            $this->client->request('GET', '/annuaire-cv', ['q' => $query]);
+            self::assertResponseIsSuccessful();
+            self::assertSelectorCount(0, '.directory-card');
+        }
+    }
+
+    public function testDirectoryExcludesProtectedExpiredDisabledAndUnauthorizedCv(): void
+    {
+        $this->client->catchExceptions(true);
+        $cv = $this->em()->find(CvInstances::class, $this->cvId);
+        $cv->setDirectoryListed(true);
+        $this->em()->flush();
+        foreach (['protected', 'unknown_protection', 'hash', 'expired', 'disabled'] as $state) {
+            $share = $this->em()->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
+            $share->setPasswordProtected($state === 'protected' ? 1 : ($state === 'unknown_protection' ? null : 0))
+                ->setPasswordHash($state === 'hash' ? 'synthetic-hash' : null)
+                ->setExpiresAt($state === 'expired' ? new \DateTime('-1 day') : null)
+                ->setIsPublic($state === 'disabled' ? 0 : 1);
+            $this->em()->flush();
+            $this->client->request('GET', '/annuaire-cv');
+            self::assertSelectorCount(0, '.directory-card');
+            $this->client->request('GET', '/cv-public/'.$this->cvId);
+            self::assertResponseStatusCodeSame(404);
+        }
+    }
+
+    public function testDirectorySeoAndDeduplicationDoNotExposeShareTokens(): void
+    {
+        $cv = $this->em()->find(CvInstances::class, $this->cvId);
+        $cv->setDirectoryListed(true);
+        $this->em()->persist((new CvShares())->setCvInstance($cv)->setShareToken(str_repeat('c', 64)));
+        $this->em()->flush();
+        $this->client->request('GET', '/annuaire-cv');
+        self::assertSelectorCount(1, '.directory-card');
+        self::assertStringNotContainsString($this->token, $this->client->getResponse()->getContent());
+        $this->client->request('GET', 'http://untrusted.example/cv-public/'.$this->cvId);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/cv-public/'.$this->cvId.'"]');
+        self::assertSelectorNotExists('.cv-experiences');
+        self::assertStringNotContainsString('SecretCompany', $this->client->getResponse()->getContent());
+        $this->client->request('GET', '/sitemap-cv.xml');
+        self::assertStringContainsString('https://performcv.fr/sitemap-cv/1.xml', $this->client->getResponse()->getContent());
+        $this->client->request('GET', '/sitemap-cv/1.xml');
+        self::assertStringContainsString('https://performcv.fr/cv-public/'.$this->cvId, $this->client->getResponse()->getContent());
+        self::assertStringNotContainsString($this->token, $this->client->getResponse()->getContent());
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    }
+
+    public function testDirectoryPublicationRejectsOtherAccountAndInvalidCsrf(): void
+    {
+        $this->client->catchExceptions(true);
+        $this->client->loginUser($this->em()->getRepository(Users::class)->findOneBy(['email' => 'other@example.test']));
+        $this->client->request('POST', '/app/cv/'.$this->cvId.'/annuaire', ['publish' => '1']);
+        self::assertResponseStatusCodeSame(403);
+        $this->loginOwner();
+        $this->client->request('POST', '/app/cv/'.$this->cvId.'/annuaire', ['publish' => '1', '_token' => 'bad']);
+        self::assertResponseStatusCodeSame(403);
+        self::assertFalse($this->em()->find(CvInstances::class, $this->cvId)->isDirectoryListed());
+    }
+
+    public function testDirectoryPremiumBonusNeedsPurchaseAndCannotOverrideExactName(): void
+    {
+        $em = $this->em();
+        $free = $em->find(CvInstances::class, $this->cvId);
+        $free->setDirectoryListed(true);
+        $template = (new CvTemplates())->setName('Premium fixture')->setPrice(390)->setIsPremium(1);
+        $em->persist($template);
+        $paid = (new CvInstances())->setProfile($free->getProfile())->setTemplate($template)->setDirectoryListed(true)->setSectionsVisibility(['experiences' => false]);
+        $em->persist($paid);
+        $em->flush();
+        $paidId = $paid->getId();
+        $em->persist((new CvShares())->setCvInstance($paid)->setShareToken(str_repeat('d', 64)));
+        $em->flush();
+        $directory = static::getContainer()->get(\App\Repository\CvDirectoryRepository::class);
+        self::assertSame([$this->cvId], array_map('intval', array_column($directory->search('designer', 1)['items'], 'id')));
+        $purchase = new \App\Entity\TemplatePurchases($em->find(Users::class, $this->ownerId), $template, 390);
+        $em->persist($purchase);
+        $em->flush();
+        $em->getConnection()->update('template_purchases', ['purchased_at' => gmdate('Y-m-d H:i:s')], ['id' => $purchase->getId()]);
+        $items = $directory->search('designer', 1)['items'];
+        self::assertSame([$paidId, $this->cvId], array_map('intval', array_column($items, 'id')));
+        self::assertEqualsWithDelta(5, (float) $items[0]['ranking_score'] - (float) $items[1]['ranking_score'], 0.001);
+        $other = $em->getRepository(Users::class)->findOneBy(['email' => 'other@example.test']);
+        $other->setFirstName('Alex')->setLastName('Durand');
+        $profile = (new Profiles())->setUser($other)->setTitle('Camille Martin');
+        $em->persist($profile);
+        $paid->setProfile($profile);
+        $otherPurchase = new \App\Entity\TemplatePurchases($other, $template, 390);
+        $em->persist($otherPurchase);
+        $em->flush();
+        $em->getConnection()->update('template_purchases', ['purchased_at' => gmdate('Y-m-d H:i:s')], ['id' => $otherPurchase->getId()]);
+        self::assertSame($this->cvId, (int) $directory->search('Camille Martin', 1)['items'][0]['id']);
+    }
+
+    public function testDirectoryValidatesSearchAndPaginatesWithStableCanonical(): void
+    {
+        $em = $this->em();
+        $base = $em->find(CvInstances::class, $this->cvId);
+        $base->setDirectoryListed(true);
+        for ($i = 0; $i < 20; ++$i) {
+            $cv = (new CvInstances())->setProfile($base->getProfile())->setTemplate($base->getTemplate())->setSectionsVisibility(['experiences' => false])->setDirectoryListed(true);
+            $em->persist($cv);
+            $em->persist((new CvShares())->setCvInstance($cv)->setShareToken(hash('sha256', 'directory-fixture-'.$i)));
+        }
+        $em->flush();
+        $this->client->request('GET', '/annuaire-cv');
+        self::assertSelectorCount(20, '.directory-card');
+        self::assertSelectorExists('a[href*="page=2"]');
+        $this->client->request('GET', '/annuaire-cv?page=2');
+        self::assertSelectorCount(1, '.directory-card');
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/annuaire-cv?page=2"]');
+        $this->client->request('GET', '/annuaire-cv', ['q' => 'un deux trois quatre cinq six']);
+        self::assertResponseIsSuccessful();
+        $this->client->request('GET', '/annuaire-cv', ['q' => 'un deux trois quatre cinq six sept']);
+        self::assertResponseStatusCodeSame(400);
+        $this->client->request('GET', '/annuaire-cv?q='.str_repeat('a', 81));
+        self::assertResponseStatusCodeSame(400);
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow');
+    }
+
+    public function testDirectoryCompletenessUsesVisibleContentAndViewsCannotBoostRanking(): void
+    {
+        $em = $this->em();
+        $cv = $em->find(CvInstances::class, $this->cvId);
+        $cv->setDirectoryListed(true);
+        $em->flush();
+        $directory = static::getContainer()->get(\App\Repository\CvDirectoryRepository::class);
+        $before = (float) $directory->search('designer', 1)['items'][0]['ranking_score'];
+        $cv->setSectionsVisibility(['experiences' => true]);
+        $em->flush();
+        $visible = (float) $directory->search('designer', 1)['items'][0]['ranking_score'];
+        self::assertEqualsWithDelta(6.25, $visible - $before, 0.001);
+        $share = $em->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
+        for ($i = 0; $i < 10; ++$i) { $em->persist((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime())); }
+        $em->flush();
+        self::assertEqualsWithDelta($visible, (float) $directory->search('designer', 1)['items'][0]['ranking_score'], 0.001);
+    }
+
     private function seedCatalogue(): void
     {
         $application = new \Symfony\Bundle\FrameworkBundle\Console\Application(static::$kernel);

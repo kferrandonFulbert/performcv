@@ -119,6 +119,14 @@ Pour une question ou une modification dépendant d'une API de bibliothèque, d'u
 
 Cette recherche n'est pas nécessaire pour une simple lecture du modèle, une modification documentaire ou un refactoring indépendant d'une API externe. Ne pas appliquer automatiquement une recommandation destinée à une version plus récente.
 
+## Annuaire des CV publics
+
+`CvInstances.directory_listed` est un booléen initialement faux. Sa publication volontaire est activée/retirée par le propriétaire avec CSRF et audit (`cv.directory_published`, `cv.directory_withdrawn`). Ne jamais inscrire automatiquement les liens existants. `CvDirectoryRepository` impose un lien actif non expiré, `password_protected = 0`, sans hash, ainsi que le droit au modèle et des nom/prénom/titre renseignés. La visibilité du profil reste indépendante. Une seule fiche est exposée par CV, même avec plusieurs liens. Le retrait rend la fiche indisponible et l’exclut des sitemaps.
+
+`/annuaire-cv` recherche dans les identités et contenus visibles uniquement ; les sections masquées ne participent pas au matching ni à la complétude. Correspondance exacte du nom prioritaire, puis score : pertinence 60, complétude 25, fraîcheur 10, bonus modèle payant 5 ; vues à zéro car elles incluent les rechargements. Résultats paginés et tris stables. Les filtres JSON sont adaptés à SQLite/MySQL, sans considérer `1` ou la chaîne `true` comme le booléen `true`.
+
+`/cv-public/{id}` est la fiche indexable avec canonique sur l’origine de confiance ; `/s/{token}` reste en `noindex`. Les recherches sont en `noindex, follow`. `/sitemap-cv.xml` référence des sitemaps par lots de 1 000 CV admissibles. Aucun jeton n’y est publié. Migration : `Version20261113000100`. Voir `docs/annuaire-cv.md` pour le calcul, les limites et l’exploitation.
+
 ## Journalisation des actions
 
 `AuditEvents` / `audit_events` contient uniquement date UTC, acteur nullable, action et référence de ressource, identifiant de corrélation. Ses références sont scalaires, sans clé étrangère, pour préserver les traces après suppression ; cette exception volontaire ne modifie pas les associations métier. Le modèle est en lecture seule, sans setters. Les identifiants du journal restent des données de traçabilité, pas des statistiques anonymes.

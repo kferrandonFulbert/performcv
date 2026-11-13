@@ -9,9 +9,21 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'cv_instances')]
 #[ORM\Index(name: 'idx_cv_instances_profile_id', columns: ['profile_id'])]
 #[ORM\Index(name: 'idx_cv_instances_template_id', columns: ['template_id'])]
+#[ORM\Index(name: 'idx_cv_directory', columns: ['directory_listed', 'id'])]
 #[ORM\Entity(repositoryClass: CvInstancesRepository::class)]
 class CvInstances
 {
+    #[ORM\Column(options: ['default' => false])]
+    private bool $directory_listed = false;
+
+    public function isDirectoryListed(): bool { return $this->directory_listed; }
+
+    public function setDirectoryListed(bool $listed): static
+    {
+        $this->directory_listed = $listed;
+        return $this;
+    }
+
     #[ORM\Column]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "IDENTITY")]

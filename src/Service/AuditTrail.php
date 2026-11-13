@@ -15,6 +15,7 @@ final class AuditTrail
         'account.password_changed' => 'account', 'account.deleted' => 'account',
         'profile.created' => 'profile', 'profile.updated' => 'profile', 'profile.deleted' => 'profile',
         'cv.created' => 'cv', 'cv.updated' => 'cv', 'cv.deleted' => 'cv',
+        'cv.directory_published' => 'cv', 'cv.directory_withdrawn' => 'cv',
         'share.created' => 'share', 'share.updated' => 'share', 'share.revoked' => 'share',
         'entry.created' => 'entry', 'entry.updated' => 'entry', 'entry.deleted' => 'entry',
         'purchase.created' => 'purchase', 'purchase.checkout_created' => 'purchase', 'purchase.confirmed' => 'purchase',

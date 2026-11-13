@@ -148,3 +148,7 @@ pour les droits et les coordonnées de contact.
 | Connexion temporairement bloquée | Attendre la fin de la limitation des tentatives ; éviter les essais répétés. |
 
 Pour les opérations techniques, consulter la [procédure de production](mise-en-production.md).
+
+## Publier un CV dans l’annuaire
+
+Dans la gestion d’un CV, la section **Annuaire public** permet de publier volontairement le CV et d’autoriser son référencement. Cette option est désactivée par défaut. Vos nom, prénom et titre doivent être renseignés, et le CV doit disposer d’un lien actif sans mot de passe et non expiré. Le contenu visible du CV et vos coordonnées seront publics. Le bouton **Retirer de l’annuaire** interrompt la publication ; les moteurs peuvent conserver temporairement leurs résultats. Voir [le fonctionnement de l’annuaire et son classement](annuaire-cv.md).

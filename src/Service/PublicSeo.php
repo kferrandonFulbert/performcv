@@ -12,6 +12,7 @@ final class PublicSeo
         'app_home', 'app_legal', 'app_privacy', 'app_terms', 'app_cookies',
         'app_cv_etudiant', 'app_cv_alternance', 'app_cv_stage', 'app_cv_developpeur_web',
         'app_cv_sans_experience', 'app_cv_ats', 'app_cv_bts_sio', 'app_lettre_alternance',
+        'app_cv_directory',
     ];
 
     public function __construct(private UrlGeneratorInterface $urls, private string $origin)
@@ -31,9 +32,9 @@ final class PublicSeo
         return array_map($this->url(...), self::ROUTES);
     }
 
-    public function url(string $route): string
+    public function url(string $route, array $parameters = []): string
     {
         // Only the path comes from the router: never trust the request's host or scheme.
-        return $this->origin.$this->urls->generate($route, [], UrlGeneratorInterface::ABSOLUTE_PATH);
+        return $this->origin.$this->urls->generate($route, $parameters, UrlGeneratorInterface::ABSOLUTE_PATH);
     }
 }

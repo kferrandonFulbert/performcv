@@ -44,3 +44,7 @@ Sources officielles consultées le 11 novembre 2026 :
 - [Google : création de sitemap](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)
 - [Symfony 7.4 : variables globales Twig](https://symfony.com/doc/7.4/templates.html#global-variables)
 - [Symfony 7.4 : génération des URL](https://symfony.com/doc/7.4/routing.html#generating-urls)
+
+## Annuaire ajouté le 13 novembre 2026
+
+Les constats ci-dessus décrivent le retest historique. L’annuaire `/annuaire-cv` et les fiches `/cv-public/{id}` ajoutent désormais des pages publiques sur publication volontaire. Les recherches restent en `noindex`, les fiches admissibles ont une canonique sur l’origine de confiance et sont découvertes via `/sitemap-cv.xml`. Les liens `/s/{token}` restent en `noindex`. Voir [annuaire, classement et limites](annuaire-cv.md).
