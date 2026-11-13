@@ -576,6 +576,48 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     border-radius:var(--radius);
     padding:35px
 }
+.entry-help{
+    margin-bottom:1rem
+}
+.entry-help summary{
+    width:fit-content;
+    cursor:pointer;
+    font-weight:600
+}
+.entry-help summary span{
+    display:inline-grid;
+    place-items:center;
+    width:1.5em;
+    height:1.5em;
+    border:1px solid currentColor;
+    border-radius:50%
+}
+.entry-field-heading{
+    display:flow-root;
+    margin-bottom:.35rem
+}
+.form-card .entry-field-heading label{
+    float:left;
+    margin:.35rem .5rem 0 0
+}
+.entry-field-help summary{
+    display:grid;
+    place-items:center;
+    width:1.75rem;
+    height:1.75rem;
+    border:1px solid currentColor;
+    border-radius:50%;
+    color:var(--brand);
+    cursor:pointer;
+    font-weight:700;
+    list-style:none
+}
+.entry-field-help summary::-webkit-details-marker{display:none}
+.entry-field-heading .entry-field-help .help-text{
+    clear:both;
+    margin:.25rem 0;
+    color:var(--ink)
+}
 .form-card h2{
     font:700 28px/1.2 Inter,"Segoe UI",Arial,sans-serif;
     margin-top:0
@@ -779,15 +821,15 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .cv-list-item{
     display:flex;
+    flex-wrap:wrap;
     align-items:center;
     gap:18px;
     text-decoration:none;
     border-top:1px solid var(--line);
     padding:18px 0
 }
-.cv-list-item>span:last-child{
-    margin-left:auto;
-    font-size:22px
+.cv-list-item>.button{
+    margin-left:auto
 }
 .cv-list-item p{
     font-size:11px;

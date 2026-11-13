@@ -14,6 +14,13 @@
         <div class="aside-mark" aria-hidden="true">P<span>↗</span></div>
     </aside>
     <section class="form-card">
+        {% if entry_help is defined %}
+            {% form_theme form 'shared/_entry_theme.html.twig' %}
+            <details class="entry-help">
+                <summary><span aria-hidden="true">?</span> Comment rédiger cette rubrique ?</summary>
+                <p>{{ entry_help }}</p>
+            </details>
+        {% endif %}
         {% if app.request.attributes.get('_route') == 'app_register' %}
             <div class="privacy-notice">
                 <p>{{ legal.name }} utilise les informations obligatoires ci-dessous pour créer et gérer votre compte et fournir les fonctions de CV demandées. Elles sont conservées jusqu’à suppression du compte, avec une revue annuelle des comptes inutilisés. Aucun accord au marketing n’est exigé pour s’inscrire.</p>

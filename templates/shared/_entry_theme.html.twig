@@ -1,0 +1,15 @@
+{% use 'form_div_layout.html.twig' %}
+
+{% block form_row_render %}
+    <div{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
+        <div class="entry-field-heading">
+            {{ form_label(form) }}
+            <details class="entry-field-help">
+                <summary aria-label="Conseil pour le champ « {{ label }} »">?</summary>
+                {{ form_help(form) }}
+            </details>
+        </div>
+        {{ form_errors(form) }}
+        {{ form_widget(form, widget_attr) }}
+    </div>
+{% endblock %}
