@@ -47,17 +47,30 @@ class LegalPagesTest extends WebTestCase
         self::assertSelectorExists('.form-card a[href="/confidentialite"]');
     }
 
-    public function testCookiesPageIsInformationalWithoutConsentForm(): void
+    public function testConsentControlsAnalyticsLoadingAndPolicy(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/cookies');
-        self::assertResponseIsSuccessful();
-        self::assertSelectorNotExists('.cookie-preferences');
-        self::assertSelectorNotExists('input[name="adult"], input[name="analytics"]');
-        self::assertSelectorTextContains('article', 'sans cookie de mesure');
+        $client->catchExceptions(true);
+        $client->request('POST', '/cookies', ['choice' => 'accept', '_token' => 'bad']);
+        self::assertResponseStatusCodeSame(400);
         self::assertNull($client->getCookieJar()->get(CookieConsent::COOKIE_NAME));
-        $client->request('POST', '/cookies', ['choice' => 'accept']);
-        self::assertResponseStatusCodeSame(405);
-        self::assertNull($client->getCookieJar()->get(CookieConsent::COOKIE_NAME));
+        $crawler = $client->request('GET', '/cookies');
+        self::assertSelectorExists('.cookie-preferences');
+        $client->submit($crawler->selectButton('Accepter les statistiques')->form());
+        self::assertResponseRedirects('/cookies?saved=1', 303);
+        self::assertNotNull($client->getCookieJar()->get(CookieConsent::COOKIE_NAME));
+        $client->request('GET', '/');
+        self::assertSelectorExists('script[src="/analytics.js"]');
+        self::assertStringContainsString('https://www.googletagmanager.com', $client->getResponse()->headers->get('Content-Security-Policy'));
+        self::assertTrue($client->getResponse()->headers->hasCacheControlDirective('private'));
+        foreach (['/connexion', '/inscription', '/cookies'] as $path) {
+            $client->request('GET', $path);
+            self::assertSelectorNotExists('script[src="/analytics.js"]');
+        }
+        $crawler = $client->request('GET', '/cookies');
+        $client->submit($crawler->selectButton('Refuser les statistiques')->form());
+        $client->request('GET', '/');
+        self::assertSelectorNotExists('script[src="/analytics.js"]');
+        self::assertStringNotContainsString('googletagmanager', $client->getResponse()->headers->get('Content-Security-Policy'));
     }
 }

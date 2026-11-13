@@ -1483,3 +1483,21 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 @media (max-width: 600px) { .public-model-grid { grid-template-columns: 1fr; } }
 
 .directory-search{max-width:760px;margin-bottom:28px}.directory-search input{flex:1;min-width:0}.directory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px;margin:28px 0}.directory-card{padding:24px;border:1px solid var(--line,#ddd);border-radius:16px;overflow-wrap:anywhere}.directory-card h2{margin:0 0 12px}.directory-publication{padding:20px 0;border-bottom:1px solid var(--line,#ddd);margin-bottom:20px}
+.cookie-popup{
+    position:fixed;
+    bottom:1.25rem;
+    right:1.25rem;
+    z-index:100;
+    width:min(32rem,calc(100% - 2.5rem));
+    max-height:calc(100dvh - 2.5rem);
+    overflow:auto;
+    padding:1.5rem;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface);
+    box-shadow:0 8px 36px #172b4d26
+}
+.cookie-popup h2{font-size:1.25rem;margin:0 0 .75rem}
+.cookie-popup p{font-size:.9rem;line-height:1.5}
+.cookie-popup-actions{display:flex;flex-wrap:wrap;gap:.75rem}
+@media print{.cookie-popup{display:none}}

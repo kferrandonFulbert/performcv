@@ -1,3 +1,36 @@
+document.querySelectorAll('[data-cookie-popup]').forEach((popup) => {
+    popup.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-cookie-choice]');
+        if (!button) return;
+        const buttons = popup.querySelectorAll('button');
+        const status = popup.querySelector('[data-cookie-status]');
+        buttons.forEach((item) => { item.disabled = true; });
+        try {
+            const response = await fetch(popup.dataset.preferencesUrl, {credentials: 'same-origin', cache: 'no-store'});
+            if (!response.ok) throw new Error('preferences');
+            const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const token = page.querySelector('.cookie-preferences input[name="_token"]');
+            if (!token) throw new Error('token');
+            const saved = await fetch(popup.dataset.preferencesUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: new URLSearchParams({_token: token.value, choice: button.dataset.cookieChoice})
+            });
+            if (!saved.ok) throw new Error('save');
+            popup.remove();
+            // Reload editorial pages to apply the server-side consent and CSP.
+            const canonical = document.querySelector('link[rel="canonical"]');
+            if (canonical && !window.location.pathname.startsWith('/annuaire-cv')) {
+                window.location.reload();
+            }
+        } catch {
+            status.hidden = false;
+            status.textContent = 'Votre choix n’a pas pu être enregistré. Réessayez ou utilisez le lien Cookies et traceurs.';
+            buttons.forEach((item) => { item.disabled = false; });
+        }
+    });
+});
+
 document.addEventListener('click', (event) => {
     if (event.target.closest('[data-print]')) window.print();
 });

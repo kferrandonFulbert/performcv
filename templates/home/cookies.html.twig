@@ -8,8 +8,21 @@
     <p>Les cookies nécessaires permettent la connexion, la protection des formulaires et l’accès temporaire aux CV protégés. Ils ne servent pas à la publicité.</p>
     <p>Le compteur anonyme de consultations des CV fonctionne côté serveur, sans cookie de mesure ni repère de comptage en session. Il enregistre uniquement l’identifiant du lien et la date de consultation, sans IP, user-agent, référent ni identifiant du visiteur. Le propriétaire voit le nombre d’affichages du CV, pas l’identité des visiteurs.</p>
     <p>Chaque affichage réussi par un lien de partage est compté, y compris les rechargements. Ce nombre ne représente pas des visiteurs uniques. Aucune acceptation ni déclaration de majorité n’est demandée pour ce compteur.</p>
-    <p>Google Analytics, Google Tag Manager et le marketing restent désactivés. Aucun consentement n’est recueilli pour ces outils. Une information et, si nécessaire, un choix adaptés seront proposés avant toute activation.</p>
-    <p>L’ancien cookie <code>performcv_consent</code>, s’il est encore présent dans votre navigateur, n’est plus utilisé pour les consultations et disparaîtra à son expiration. Vous pouvez aussi le supprimer depuis votre navigateur.</p>
+    <h2>Statistiques facultatives avec Google Analytics</h2>
+    <p>Avec votre accord, Google Tag Manager charge Google Analytics 4 pour mesurer les pages consultées et l’utilisation des pages éditoriales publiques. Le destinataire est Google Ireland Limited, avec des traitements possibles par Google LLC aux États-Unis. La publicité et la personnalisation publicitaire sont désactivées par le code du site. Le contenu des CV et les pages de votre compte sont exclus de ce chargement.</p>
+    <p>Les cookies <code>_ga</code> et <code>_ga_*</code> servent à distinguer les navigateurs et les sessions. Le site demande une durée de 180 jours, sans prolongation automatique. Leur dépôt effectif dépend de la balise GA4 publiée dans le conteneur GTM. Votre choix est enregistré pendant six mois dans le cookie signé <code>performcv_consent</code>, que vous acceptiez ou refusiez.</p>
+    <p>Vous pouvez retirer votre accord ici à tout moment. Le refus arrête le chargement lors des affichages suivants et supprime les cookies GA accessibles sur le domaine courant. La suppression des données déjà transmises peut être demandée à l’éditeur. Les anciens accords sont invalidés par cette nouvelle version.</p>
+    {% set preferences = cookie_consent.preferences(app.request) %}
+    {% if app.request.query.get('saved') == '1' %}<p role="status">Votre choix a été enregistré.</p>{% endif %}
+    <p>Votre choix actuel est {{ preferences is null ? 'non renseigné' : (preferences.analytics ? 'statistiques acceptées' : 'statistiques refusées') }}.</p>
+    <form method="post" action="{{ path('app_cookies') }}" class="cookie-preferences" data-turbo="false">
+        <input type="hidden" name="_token" value="{{ csrf_token('cookie_preferences') }}">
+        <div class="actions">
+            <button class="button primary" name="choice" value="accept">Accepter les statistiques</button>
+            <button class="button secondary" name="choice" value="reject">Refuser les statistiques</button>
+        </div>
+    </form>
+    <p>Si vous êtes mineur et avez un doute sur votre capacité à consentir, refusez les statistiques et demandez conseil à votre représentant légal.</p>
     <p><a href="{{ path('app_privacy') }}">Consulter la politique de confidentialité</a>.</p>
 </article>
 {% endblock %}
