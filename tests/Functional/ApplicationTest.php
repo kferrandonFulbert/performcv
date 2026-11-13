@@ -132,12 +132,36 @@ class ApplicationTest extends WebTestCase
         self::assertSelectorTextContains('#experiences', 'Studio Test');
     }
 
+    public function testEntryFormsOfferSectionSpecificWritingHelp(): void
+    {
+        $this->loginOwner();
+        $tips = [];
+        foreach (['experiences' => 'companyName', 'educations' => 'institution', 'certifications' => 'name', 'projects' => 'title', 'languages' => 'language', 'skills' => 'skillName'] as $section => $field) {
+            $crawler = $this->client->request('GET', '/app/profils/'.$this->profileId.'/rubriques/'.$section.'/nouveau');
+            self::assertResponseIsSuccessful();
+            self::assertSelectorTextContains('details.entry-help summary', 'Comment rédiger');
+            $tips[] = $crawler->filter('details.entry-help p')->text();
+            $input = $crawler->filter('#entry_'.$field);
+            self::assertStringStartsWith('Ex. : ', $input->attr('placeholder'));
+            self::assertSame('', (string) $input->attr('value'));
+            foreach ($crawler->filter('#entry input:not([type="hidden"]), #entry select, #entry textarea') as $control) {
+                $id = $control->getAttribute('id');
+                $label = $crawler->filter('label[for="'.$id.'"]')->text();
+                $help = $crawler->filter('details.entry-field-help #'.$id.'_help');
+                self::assertNotSame('', $help->text());
+                self::assertStringContainsString($label, $help->ancestors()->first()->filter('summary')->attr('aria-label'));
+                self::assertContains($id.'_help', explode(' ', $control->getAttribute('aria-describedby')));
+            }
+        }
+        self::assertCount(6, array_unique($tips));
+    }
+
     public function testOtherAccountCannotAccessOrMutateProfileOrCv(): void
     {
         $other = $this->em()->getRepository(Users::class)->findOneBy(['email' => 'other@example.test']);
         $this->client->loginUser($other);
         $this->client->catchExceptions(true);
-        foreach (['/app/profils/'.$this->profileId, '/app/profils/'.$this->profileId.'/modifier', '/app/cv/'.$this->cvId, '/app/cv/'.$this->cvId.'/partager'] as $url) {
+        foreach (['/app/profils/'.$this->profileId, '/app/profils/'.$this->profileId.'/modifier', '/app/cv/'.$this->cvId, '/app/cv/'.$this->cvId.'/modifier', '/app/cv/'.$this->cvId.'/partager'] as $url) {
             $this->client->request('GET', $url);
             self::assertResponseStatusCodeSame(403);
         }
@@ -475,7 +499,12 @@ class ApplicationTest extends WebTestCase
         self::assertCount(2, array_filter($templates, static fn ($template) => $template->isFree()));
         self::assertCount(6, array_filter($templates, static fn ($template) => $template->getPrice() === 390));
         $this->loginOwner();
-        $this->client->request('GET', '/app/cv/'.$this->cvId.'/modifier');
+        $crawler = $this->client->request('GET', '/app/profils/'.$this->profileId);
+        $link = $crawler->filter('#mes-cv')->selectLink('Modifier le CV')->link();
+        self::assertSame('/app/cv/'.$this->cvId.'/modifier', parse_url($link->getUri(), PHP_URL_PATH));
+        $headerLink = $crawler->filter('.page-heading .actions')->selectLink('Modifier le CV')->link();
+        self::assertSame($link->getUri(), $headerLink->getUri());
+        $this->client->click($headerLink);
         self::assertResponseIsSuccessful();
         self::assertSelectorCount(8, '[data-template-id]');
         self::assertSelectorTextContains('h1', 'Choisissez votre modèle');

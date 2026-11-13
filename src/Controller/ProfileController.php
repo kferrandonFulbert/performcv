@@ -143,7 +143,9 @@ class ProfileController extends AbstractController
             }
         }
 
-        return $this->render('shared/form.html.twig', ['form' => $form, 'title' => $this->definition($section)['label'], 'eyebrow' => $profile->getTitle(), 'back' => $this->generateUrl('app_profile_show', ['id' => $profile->getId()]), 'button' => 'Enregistrer']);
+        $definition = $this->definition($section);
+
+        return $this->render('shared/form.html.twig', ['form' => $form, 'title' => $definition['label'], 'entry_help' => $definition['help'], 'eyebrow' => $profile->getTitle(), 'back' => $this->generateUrl('app_profile_show', ['id' => $profile->getId()]), 'button' => 'Enregistrer']);
     }
 
     private function ownedProfile(int $id): Profiles
