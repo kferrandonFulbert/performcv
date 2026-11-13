@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ query ? 'Recherche : ' ~ query : 'Annuaire des CV publics' }} — PerformCV{% endblock %}
+{% block description %}<meta name="description" content="Découvrez des parcours professionnels et recherchez un CV public par nom, prénom, métier ou compétence dans l’annuaire PerformCV.">{% endblock %}
+{% block body %}
+<header class="page-heading"><div><p class="eyebrow">DES PARCOURS À DÉCOUVRIR</p><h1>Annuaire des CV publics</h1><p class="lead">Recherchez une personne, un métier ou une compétence parmi les CV publiés volontairement.</p></div></header>
+<form method="get" action="{{ path('app_cv_directory') }}" class="directory-search">
+    <label for="directory-query">Nom, prénom ou mots-clés</label>
+    <div class="actions"><input id="directory-query" type="search" name="q" value="{{ query }}" maxlength="80" placeholder="Ex. Camille Martin, développeur PHP…"><button class="button" type="submit">Rechercher</button></div>
+</form>
+{% if error|default(null) %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+<p>Les noms exacts sont prioritaires. Le classement tient ensuite compte de la pertinence, du contenu visible, de la mise à jour du CV et d’un bonus limité pour les modèles payants. Les vues n’influencent pas le classement.</p>
+<div class="directory-grid">
+{% for item in items %}<article class="directory-card">
+    <h2><a href="{{ path('app_directory_cv', {id: item.id}) }}">{{ item.first_name }} {{ item.last_name }}</a></h2>
+    <p class="lead">{{ item.title }}</p>{% if item.location %}<p>{{ item.location }}</p>{% endif %}
+    {% if item.summary %}<p>{{ item.summary|striptags|slice(0, 200) }}{{ item.summary|length > 200 ? '…' : '' }}</p>{% endif %}
+    <a href="{{ path('app_directory_cv', {id: item.id}) }}">Consulter ce CV ↗</a>
+</article>{% else %}<p class="empty-inline">{{ query ? 'Aucun CV ne correspond à votre recherche.' : 'Aucun CV publié pour le moment.' }}</p>{% endfor %}
+</div>
+<nav class="actions" aria-label="Pages de l’annuaire">{% if page > 1 %}<a class="button secondary" href="{{ path('app_cv_directory', {page: page - 1, q: query}) }}">← Page précédente</a>{% endif %}{% if next %}<a class="button secondary" href="{{ path('app_cv_directory', {page: page + 1, q: query}) }}">Page suivante →</a>{% endif %}</nav>
+{% endblock %}

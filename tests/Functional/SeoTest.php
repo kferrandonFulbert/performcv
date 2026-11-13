@@ -29,7 +29,7 @@ final class SeoTest extends WebTestCase
         $client->request('GET', 'http://untrusted.example/robots.txt');
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Type', 'text/plain; charset=UTF-8');
-        self::assertSame("User-agent: *\nAllow: /\n\nSitemap: https://performcv.fr/sitemap.xml\n", $client->getResponse()->getContent());
+        self::assertSame("User-agent: *\nAllow: /\n\nSitemap: https://performcv.fr/sitemap.xml\nSitemap: https://performcv.fr/sitemap-cv.xml\n", $client->getResponse()->getContent());
         $client->request('GET', 'http://untrusted.example/sitemap.xml');
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Type', 'application/xml; charset=UTF-8');
@@ -50,6 +50,7 @@ final class SeoTest extends WebTestCase
             'https://performcv.fr/cv-ats',
             'https://performcv.fr/exemple-cv/bts-sio',
             'https://performcv.fr/lettre-motivation/alternance',
+            'https://performcv.fr/annuaire-cv',
         ], array_map(strval(...), $xml->xpath('/s:urlset/s:url/s:loc')));
     }
 

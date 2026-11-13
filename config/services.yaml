@@ -16,7 +16,7 @@ parameters:
         phone: '06 13 37 54 37'
         phone_uri: '+33613375437'
         domain: 'performcv.fr'
-        updated: '12 novembre 2026'
+        updated: '13 novembre 2026'
 
 services:
     # default configuration for services in *this* file

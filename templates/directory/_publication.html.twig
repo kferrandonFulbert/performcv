@@ -1,0 +1,11 @@
+<section class="directory-publication">
+    <h2>Annuaire public</h2>
+    <p>La publication est volontaire. Votre nom, vos coordonnées et le contenu visible de ce CV deviendront accessibles depuis l’annuaire et pourront apparaître dans les moteurs de recherche.</p>
+    {% if cv.directoryListed %}
+        <p>Publication activée. Le CV apparaît tant qu’au moins un lien reste actif, sans mot de passe et non expiré. Retirer la publication peut prendre du temps à se répercuter dans les moteurs.</p>
+        <form method="post" action="{{ path('app_cv_directory_publish', {id: cv.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('directory_cv_' ~ cv.id) }}"><button class="button secondary" name="publish" value="0">Retirer de l’annuaire</button></form>
+    {% else %}
+        <p>Ce CV n’est pas inscrit dans l’annuaire. Pour le publier, créez d’abord un lien actif sans mot de passe.</p>
+        <form method="post" action="{{ path('app_cv_directory_publish', {id: cv.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('directory_cv_' ~ cv.id) }}"><button class="button secondary" name="publish" value="1">Publier ce CV dans l’annuaire et autoriser son référencement</button></form>
+    {% endif %}
+</section>

@@ -15,6 +15,7 @@ gratuits et six modèles en achat unique, avec confirmation Stripe côté serveu
 | Associations Doctrine et migration MySQL | [Intégrité des relations](docs/associations-doctrine.md) |
 | Actions des comptes, journaux de sécurité, consultation et purge | [Journalisation](docs/journalisation.md) |
 | Canonical, robots.txt et sitemap | [SEO](docs/seo.md) |
+| Publication volontaire, recherche et classement des CV publics | [Annuaire des CV](docs/annuaire-cv.md) |
 
 ## Socle
 
