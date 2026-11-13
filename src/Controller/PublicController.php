@@ -78,7 +78,7 @@ class PublicController extends AbstractController
         if ($request->isMethod('GET')) {
             $writer->save((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime()));
         }
-        $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        $response->headers->set('X-Robots-Tag', 'noarchive');
 
         return $response;
     }

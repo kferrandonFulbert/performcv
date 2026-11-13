@@ -187,7 +187,7 @@ class ApplicationTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorNotExists('.cv-experiences');
         self::assertStringNotContainsString('SecretCompany', $this->client->getResponse()->getContent());
-        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noarchive');
         $this->client->request('GET', '/s/'.$this->token);
         self::assertSame(2, $this->em()->getRepository(CvViews::class)->count([]));
         $view = $this->em()->getRepository(CvViews::class)->findOneBy([]);
@@ -977,7 +977,7 @@ class ApplicationTest extends WebTestCase
             $this->client->request('GET', '/annuaire-cv', ['q' => $query]);
             self::assertResponseIsSuccessful();
             self::assertSelectorCount(1, '.directory-card');
-            self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow');
+            self::assertFalse($this->client->getResponse()->headers->has('X-Robots-Tag'));
         }
         $this->client->request('GET', '/annuaire-cv', ['q' => 'SecretCompany']);
         self::assertSelectorCount(0, '.directory-card');
@@ -1034,13 +1034,28 @@ class ApplicationTest extends WebTestCase
         self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/cv-public/'.$this->cvId.'"]');
         self::assertSelectorNotExists('.cv-experiences');
         self::assertStringNotContainsString('SecretCompany', $this->client->getResponse()->getContent());
-        $this->client->request('GET', '/sitemap-cv.xml');
-        self::assertStringContainsString('https://performcv.fr/sitemap-cv/1.xml', $this->client->getResponse()->getContent());
-        $this->client->request('GET', '/sitemap-cv/1.xml');
-        self::assertStringContainsString('https://performcv.fr/cv-public/'.$this->cvId, $this->client->getResponse()->getContent());
+        $this->client->request('GET', 'http://untrusted.example/sitemap.xml');
+        self::assertResponseIsSuccessful();
+        $index = simplexml_load_string($this->client->getResponse()->getContent());
+        $index->registerXPathNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        self::assertSame(['https://performcv.fr/sitemap-pages.xml', 'https://performcv.fr/sitemap-conseils-cv.xml', 'https://performcv.fr/sitemap-cv-1.xml'], array_map(strval(...), $index->xpath('/s:sitemapindex/s:sitemap/s:loc')));
+        $this->client->request('GET', '/sitemap-cv-1.xml');
+        self::assertResponseIsSuccessful();
+        $urls = simplexml_load_string($this->client->getResponse()->getContent());
+        $urls->registerXPathNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        self::assertSame(['https://performcv.fr/cv-public/'.$this->cvId, 'https://performcv.fr/annuaire-cv'], array_map(strval(...), $urls->xpath('/s:urlset/s:url/s:loc')));
         self::assertStringNotContainsString($this->token, $this->client->getResponse()->getContent());
+        $this->em()->find(CvInstances::class, $this->cvId)->setDirectoryListed(false);
+        $this->em()->flush();
+        $this->client->request('GET', '/sitemap.xml');
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('/sitemap-pages.xml', $this->client->getResponse()->getContent());
+        self::assertStringNotContainsString('/sitemap-cv-', $this->client->getResponse()->getContent());
+        $this->client->catchExceptions(true);
+        $this->client->request('GET', '/sitemap-cv-1.xml');
+        self::assertResponseStatusCodeSame(404);
         $this->client->request('GET', '/s/'.$this->token);
-        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noarchive');
     }
 
     public function testDirectoryPublicationRejectsOtherAccountAndInvalidCsrf(): void
@@ -1112,7 +1127,7 @@ class ApplicationTest extends WebTestCase
         self::assertResponseStatusCodeSame(400);
         $this->client->request('GET', '/annuaire-cv?q='.str_repeat('a', 81));
         self::assertResponseStatusCodeSame(400);
-        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow');
+        self::assertFalse($this->client->getResponse()->headers->has('X-Robots-Tag'));
     }
 
     public function testDirectoryCompletenessUsesVisibleContentAndViewsCannotBoostRanking(): void

@@ -22,14 +22,13 @@ final class CvDirectoryController extends AbstractController
             DirectorySearch::terms($query);
             $results = $directory->search($query, $page);
         } catch (\InvalidArgumentException $error) {
-            return $this->render('directory/index.html.twig', ['query' => $query, 'page' => 1, 'items' => [], 'next' => false, 'error' => $error->getMessage(), 'public_canonical' => null], new Response(status: 400, headers: ['X-Robots-Tag' => 'noindex, follow']));
+            return $this->render('directory/index.html.twig', ['query' => $query, 'page' => 1, 'items' => [], 'next' => false, 'error' => $error->getMessage(), 'public_canonical' => null], new Response(status: 400));
         }
         if ($page > 1 && !$results['items']) { throw $this->createNotFoundException(); }
         $response = $this->render('directory/index.html.twig', $results + [
             'query' => $query, 'page' => $page,
             'public_canonical' => $query === '' ? $seo->url('app_cv_directory', $page > 1 ? ['page' => $page] : []) : null,
         ]);
-        if ($query !== '' || !$results['items']) { $response->headers->set('X-Robots-Tag', 'noindex, follow'); }
         return $response;
     }
 
@@ -45,21 +44,33 @@ final class CvDirectoryController extends AbstractController
         return $response;
     }
 
+    #[Route('/sitemap.xml', name: 'app_sitemap', methods: ['GET'])]
     #[Route('/sitemap-cv.xml', name: 'app_directory_sitemap_index', methods: ['GET'])]
     public function sitemapIndex(CvDirectoryRepository $directory, PublicSeo $seo): Response
     {
-        $urls = [$seo->url('app_sitemap')];
-        for ($page = 1, $pages = (int) ceil($directory->count() / 1000); $page <= $pages; ++$page) {
+        $urls = [$seo->url('app_sitemap_pages'), $seo->url('app_sitemap_guides')];
+        for ($page = 1, $pages = (int) ceil($directory->count() / CvDirectoryRepository::SITEMAP_SIZE); $page <= $pages; ++$page) {
             $urls[] = $seo->url('app_directory_sitemap', ['page' => $page]);
         }
         return $this->render('seo/sitemap-index.xml.twig', ['urls' => $urls], new Response(headers: ['Content-Type' => 'application/xml; charset=UTF-8']));
     }
 
-    #[Route('/sitemap-cv/{page}.xml', name: 'app_directory_sitemap', requirements: ['page' => '[1-9]\d{0,4}'], methods: ['GET'])]
+    #[Route('/sitemap-cv-{page}.xml', name: 'app_directory_sitemap', requirements: ['page' => '[1-9]\d{0,4}'], methods: ['GET'])]
+    #[Route('/sitemap-cv/{page}.xml', name: 'app_directory_sitemap_legacy', requirements: ['page' => '[1-9]\d{0,4}'], methods: ['GET'])]
     public function sitemap(int $page, CvDirectoryRepository $directory, PublicSeo $seo): Response
     {
         $ids = $directory->sitemapIds($page);
         if (!$ids) { throw $this->createNotFoundException(); }
-        return $this->render('seo/sitemap.xml.twig', ['urls' => array_map(fn ($id): string => $seo->url('app_directory_cv', ['id' => $id]), $ids)], new Response(headers: ['Content-Type' => 'application/xml; charset=UTF-8']));
+        $urls = array_map(fn ($id): string => $seo->url('app_directory_cv', ['id' => $id]), $ids);
+        $offset = ($page - 1) * CvDirectoryRepository::SITEMAP_SIZE;
+        for ($i = 0; $i < count($ids); $i += CvDirectoryRepository::PAGE_SIZE) {
+            $directoryPage = 1 + intdiv($offset + $i, CvDirectoryRepository::PAGE_SIZE);
+            if ($directoryPage > CvDirectoryRepository::MAX_PAGE) {
+                break;
+            }
+            $urls[] = $seo->url('app_cv_directory', $directoryPage === 1 ? [] : ['page' => $directoryPage]);
+        }
+
+        return $this->render('seo/sitemap.xml.twig', ['urls' => $urls], new Response(headers: ['Content-Type' => 'application/xml; charset=UTF-8']));
     }
 }

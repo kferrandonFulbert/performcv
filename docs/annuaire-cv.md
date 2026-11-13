@@ -85,16 +85,16 @@ popularité récente, logarithmique et plafonnée. Cette évolution n’est pas 
 
 - `/annuaire-cv` : liste paginée avec liens HTML explorables ; chaque page de liste
   sans recherche a sa propre URL canonique.
-- `/annuaire-cv?q=...` : recherche en `noindex, follow`, sans canonique, pour éviter
-  d’indexer les combinaisons de mots saisis.
+- `/annuaire-cv?q=...` : recherche sans directive robots ni canonique.
 - `/cv-public/{id}` : fiche publique du CV, avec titre, description, canonique sur
   l’origine de confiance `performcv.public_origin` et rubriques visibles uniquement.
-- `/sitemap-cv.xml` : index des sitemaps des CV, avec le sitemap général comme
-  entrée permanente ; `/sitemap-cv/{page}.xml` contient au plus 1 000 fiches par page.
-- `/robots.txt` annonce le sitemap général et celui de l’annuaire. Les jetons de
-  partage ne figurent jamais dans les résultats ni dans ces sitemaps.
+- Soumettre `https://performcv.fr/sitemap.xml` dans Google Search Console. Cet index,
+  annoncé dans `/robots.txt`, référence `/sitemap-pages.xml` pour l’accueil et les pages légales, et `/sitemap-conseils-cv.xml` pour toutes les pages du menu « Conseils CV ».
+- Dès qu’un CV est admissible, l’index ajoute les fichiers `/sitemap-cv-{page}.xml`.
+  Chacun contient au plus 1 000 fiches et les pages de liste correspondantes, sans recherche ni jeton.
+  Les anciennes adresses `/sitemap-cv.xml` et `/sitemap-cv/{page}.xml` restent accessibles.
 
-Les liens existants `/s/{token}` conservent leurs directives `noindex` ; la fiche
+Les liens existants `/s/{token}` utilisent uniquement la directive `noarchive` ; la fiche
 publique a une URL distincte. Son affichage GET est compté anonymement sur le lien
 admissible de plus petit identifiant, une seule fois par requête ; les requêtes
 HEAD, la liste et les sitemaps n’ajoutent pas de consultation.

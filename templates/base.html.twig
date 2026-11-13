@@ -12,6 +12,14 @@
         <script src="{{ asset('ui.js') }}" defer></script>
         <link rel="icon" type="image/png" href="/favicon.png">
         {% block stylesheets %}{% endblock %}
+        <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-PV3L5P45"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+        </script>
     </head>
     <body>
         <a class="skip-link" href="#main">Aller au contenu</a>
