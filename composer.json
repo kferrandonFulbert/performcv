@@ -6,6 +6,8 @@
     "require": {
         "php": "~8.5.0",
         "ext-ctype": "*",
+        "ext-exif": "*",
+        "ext-gd": "*",
         "ext-iconv": "*",
         "doctrine/dbal": "^3.10.7",
         "doctrine/doctrine-bundle": "^2.19.3",

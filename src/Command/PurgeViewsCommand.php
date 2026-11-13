@@ -20,15 +20,22 @@ class PurgeViewsCommand extends Command
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this->addOption('dry-run', null, \Symfony\Component\Console\Input\InputOption::VALUE_NONE, 'Compte sans supprimer.');
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $count = $this->em->createQuery('DELETE FROM '.CvViews::class.' v WHERE v.viewed_at < :cutoff OR v.viewed_at IS NULL')
-            ->setParameter('cutoff', new \DateTime('-90 days'))->execute();
-        $output->writeln(sprintf('%d consultation(s) supprimée(s).', $count));
+        $dry = $input->getOption('dry-run');
+        $query = $this->em->createQuery(($dry ? 'SELECT COUNT(v.id) FROM ' : 'DELETE FROM ').CvViews::class.' v WHERE v.viewed_at < :cutoff OR v.viewed_at IS NULL')
+            ->setParameter('cutoff', new \DateTime('-90 days'));
+        $count = $dry ? $query->getSingleScalarResult() : $query->execute();
+        $output->writeln(sprintf('%d consultation(s) %s.', $count, $dry ? 'à supprimer' : 'supprimée(s)'));
         // Security counters are not statistics and are retained for at most a daily cycle.
         foreach (glob($this->cacheDir.'/attempts/*.json') ?: [] as $file) {
-            if (filemtime($file) < time() - 900) {
-                unlink($file);
+            if (is_file($file) && !is_link($file) && filemtime($file) < time() - 900) {
+                if (!$dry && !unlink($file)) { return Command::FAILURE; }
             }
         }
 

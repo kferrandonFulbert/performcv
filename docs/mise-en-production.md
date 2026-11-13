@@ -241,14 +241,14 @@ ainsi que les fichiers de compteurs de sécurité expirés. Elle modifie les don
 et ne dispose pas d’option de simulation :
 
 ```sh
-php bin/console app:views:purge --env=prod --no-debug --no-interaction
+php bin/console app:retention:nightly --env=prod --no-debug --no-interaction
 ```
 
 Exemple de tâche quotidienne à **03:15 dans le fuseau du planificateur**, après
 adaptation des chemins et création du dossier de journaux hors `public/` :
 
 ```cron
-15 3 * * * cd /home/COMPTE/performcv && APP_ENV=prod APP_DEBUG=0 /chemin/php85 bin/console app:views:purge --env=prod --no-debug --no-interaction >> /home/COMPTE/logs/performcv-purge.log 2>&1
+15 3 * * * cd /home/COMPTE/performcv && APP_ENV=prod APP_DEBUG=0 /chemin/php85 bin/console app:retention:nightly --env=prod --no-debug --no-interaction >> /home/COMPTE/logs/performcv-purge.log 2>&1
 ```
 
 Dans cPanel, saisir séparément la planification et la commande si l’interface le

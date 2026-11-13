@@ -7,10 +7,10 @@
     <p class="eyebrow">CONSEILS ET EXEMPLES DE CANDIDATURE</p>
     <h1>{{ heading }}</h1>
     <p class="lead">{{ description }}</p>
-    <div class="actions"><a class="button" href="{{ path(app.user ? 'app_profile_new' : 'app_register') }}">Créer mon CV gratuitement ↗</a></div>
+    <div class="actions"><a class="button" href="{{ path(app.request.cookies.count and app.user ? 'app_profile_new' : 'app_register') }}">Créer mon CV gratuitement ↗</a></div>
     <p class="fine">Avec un compte. Modèles gratuits disponibles ; certains modèles du catalogue sont payants.</p>
     {% block guide %}{% endblock %}
-    <section aria-labelledby="next-step"><h2 id="next-step">Passez de l’exemple à votre candidature</h2><p>Renseignez votre parcours dans PerformCV, sélectionnez les rubriques utiles et choisissez votre présentation. Relisez le CV avant de l’imprimer en PDF ou de créer un lien de partage.</p><div class="actions"><a class="button" href="{{ path(app.user ? 'app_profile_new' : 'app_register') }}">Préparer mon CV ↗</a></div></section>
+    <section aria-labelledby="next-step"><h2 id="next-step">Passez de l’exemple à votre candidature</h2><p>Renseignez votre parcours dans PerformCV, sélectionnez les rubriques utiles et choisissez votre présentation. Relisez le CV avant de l’imprimer en PDF ou de créer un lien de partage.</p><div class="actions"><a class="button" href="{{ path(app.request.cookies.count and app.user ? 'app_profile_new' : 'app_register') }}">Préparer mon CV ↗</a></div></section>
 </article>
 {% include 'guides/_links.html.twig' %}
 {% endblock %}

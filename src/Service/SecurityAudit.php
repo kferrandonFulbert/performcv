@@ -17,7 +17,7 @@ final class SecurityAudit
 
     public function record(string $action, ?int $actorId): void
     {
-        if (!in_array($action, ['auth.login_succeeded', 'auth.login_failed', 'auth.logout', 'access.denied', 'access.rate_limited', 'audit.read', 'audit.purged', 'audit.purge_simulated'], true)) {
+        if (!in_array($action, ['auth.login_succeeded', 'auth.login_failed', 'auth.logout', 'access.denied', 'access.rate_limited', 'audit.read', 'audit.purged', 'audit.purge_simulated', 'photos.clean_simulated', 'photos.cleaned', 'photos.clean_failed'], true)) {
             throw new \InvalidArgumentException('Invalid security audit event.');
         }
         try {
