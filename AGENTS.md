@@ -70,6 +70,8 @@ Ne pas imposer un seul profil par utilisateur, un seul CV par profil ou un seul 
 
 - `GuideController` et `templates/guides/` portent huit pages publiques éditoriales à routes explicites, liées depuis l’accueil. `PublicSeo` autorise leurs canoniques et leur présence au sitemap. La page de lettre de motivation fournit un exemple à personnaliser ; aucun générateur de lettres n’est implémenté.
 
+- `GuideExamples` fournit les exemples complets fictifs, sans accès à la base. Ils utilisent le rendu partagé du créateur avec une hiérarchie de titres adaptée, dont deux variantes BTS SIO (SLAM/SISR). La responsabilité éditoriale reprend `performcv.legal.name`. La date de révision des guides est explicite : ne la changer qu’avec une vraie révision ; ne pas inventer de relecture humaine ou de qualification de l’éditeur.
+
 - `src/Entity/` : modèle persistant et mapping ; `src/Repository/WorkspaceRepository.php` : lectures métier. Les repositories par entité restent principalement des squelettes de `ServiceEntityRepository`.
 - `src/Controller/`, `src/Form/`, `src/Service/`, `src/Security/` : parcours HTTP, formulaires, services métier et voter de propriété. Les suppressions passent par les transactions de `WorkspaceWriter`.
 - `config/` : configuration de l'application ; `migrations/` : évolutions versionnées du schéma ; `tests/` : vérifications automatisées.
@@ -127,7 +129,7 @@ Cette recherche n'est pas nécessaire pour une simple lecture du modèle, une mo
 
 `/annuaire-cv` recherche dans les identités et contenus visibles uniquement ; les sections masquées ne participent pas au matching ni à la complétude. Correspondance exacte du nom prioritaire, puis score : pertinence 60, complétude 25, fraîcheur 10, bonus modèle payant 5 ; vues à zéro car elles incluent les rechargements. Résultats paginés et tris stables. Les filtres JSON sont adaptés à SQLite/MySQL, sans considérer `1` ou la chaîne `true` comme le booléen `true`.
 
-`/cv-public/{id}` est la fiche indexable avec canonique sur l’origine de confiance ; `/s/{token}` utilise uniquement `noarchive`. Les recherches n’imposent aucune directive robots. `/sitemap-cv.xml` référence des sitemaps par lots de 1 000 CV admissibles. Aucun jeton n’y est publié. Migration : `Version20261113000100`. Voir `docs/annuaire-cv.md` pour le calcul, les limites et l’exploitation.
+`/cv-public/{id}` est la fiche indexable avec canonique sur l’origine de confiance. `CvSeo` dirige la canonique des partages sans protection vers cette fiche uniquement si le CV est admissible à l’annuaire ; sinon elle vise le plus ancien partage actif sans protection ni hash de la même instance. Le profil public garde sa propre canonique, car il peut présenter d’autres rubriques. Aucun CV distinct n’est fusionné. Les partages protégés restent sans canonique, avec `noindex, follow, noarchive`, même après déverrouillage ; les autres gardent `noarchive`. Les recherches non vides et requêtes invalides de l’annuaire portent `noindex, follow` sans blocage robots.txt ; les listes sans recherche conservent leurs canoniques paginées. `/sitemap-cv.xml` référence des sitemaps par lots de 1 000 CV admissibles. Aucun jeton n’y est publié. Migration : `Version20261113000100`. Voir `docs/annuaire-cv.md` pour le calcul, les limites et l’exploitation.
 
 ## Journalisation des actions
 

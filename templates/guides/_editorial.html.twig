@@ -1,0 +1,18 @@
+<section class="guide-editorial" aria-labelledby="editorial-title">
+    <h2 id="editorial-title">Responsabilité éditoriale et références</h2>
+    <p>Responsabilité éditoriale : <a href="{{ path('app_legal') }}">{{ legal.name }}, éditeur de PerformCV</a>. Contenu et exemples mis à jour le <time datetime="2026-11-14">14 novembre 2026</time>.</p>
+    <p>Ces conseils généraux et exemples fictifs aident à préparer une candidature ; ils ne constituent ni une validation de diplôme ni une garantie d’entretien. Les dates, rythmes et modalités de formation se vérifient auprès de l’établissement. Vous pouvez signaler une erreur à <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>.</p>
+    <h3>Pour vérifier et approfondir</h3>
+    <ul>
+        <li><a href="https://europass.europa.eu/fr/create-your-europass-cv" rel="noopener noreferrer">Europass : organiser et adapter son CV</a> — ressource générale sur la préparation du parcours.</li>
+        {% if guide_page == 'ats' or guide_page == 'developpeur-web' %}
+            <li><a href="https://www.francetravail.fr/candidat/vos-recherches/preparer-votre-candidature/cv-lettre-de-motivation-e-mail/logiciels-de-recrutement-ats-ada.html" rel="noopener noreferrer">France Travail : adapter son CV aux logiciels de recrutement</a> — repères de lisibilité ; PerformCV ne délivre pas de score ATS.</li>
+        {% elseif guide_page == 'bts-sio' %}
+            <li><a href="https://www.francecompetences.fr/recherche/rncp/40792/" rel="noopener noreferrer">France compétences : fiche du BTS Services informatiques aux organisations</a> — intitulés et compétences du diplôme.</li>
+            <li><a href="https://www.onisep.fr/ressources/univers-formation/formations/post-bac/bts-services-informatiques-aux-organisations-option-a-solutions-d-infrastructure-systemes-et-reseaux" rel="noopener noreferrer">Onisep : BTS SIO, option SISR</a> — présentation de la formation et de son orientation.</li>
+        {% else %}
+            <li><a href="https://www.francetravail.fr/candidat/vos-recherches/preparer-votre-candidature/cv-lettre-de-motivation-e-mail/comment-rediger-un-cv-efficace-e.html" rel="noopener noreferrer">France Travail : rédiger un CV clair et adapté</a> — repères pour sélectionner et présenter les informations.</li>
+        {% endif %}
+    </ul>
+    <p class="fine">Références consultées le 14 novembre 2026. Elles ne valident ni les exemples fictifs ni l’application PerformCV.</p>
+</section>

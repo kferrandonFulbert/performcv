@@ -85,7 +85,7 @@ popularité récente, logarithmique et plafonnée. Cette évolution n’est pas 
 
 - `/annuaire-cv` : liste paginée avec liens HTML explorables ; chaque page de liste
   sans recherche a sa propre URL canonique.
-- `/annuaire-cv?q=...` : recherche sans directive robots ni canonique.
+- `/annuaire-cv?q=...` : recherche non vide avec `X-Robots-Tag: noindex, follow`, sans canonique. Les requêtes invalides portent également cette directive ; les recherches vides après suppression des espaces restent des listes normales.
 - `/cv-public/{id}` : fiche publique du CV, avec titre, description, canonique sur
   l’origine de confiance `performcv.public_origin` et rubriques visibles uniquement.
 - Soumettre `https://performcv.fr/sitemap.xml` dans Google Search Console. Cet index,
@@ -94,7 +94,12 @@ popularité récente, logarithmique et plafonnée. Cette évolution n’est pas 
   Chacun contient au plus 1 000 fiches et les pages de liste correspondantes, sans recherche ni jeton.
   Les anciennes adresses `/sitemap-cv.xml` et `/sitemap-cv/{page}.xml` restent accessibles.
 
-Les liens existants `/s/{token}` utilisent uniquement la directive `noarchive` ; la fiche
+Les partages non protégés `/s/{token}` gardent `noarchive`. `CvSeo` leur donne la
+canonique de la fiche d’annuaire quand le CV est admissible, sinon celle du plus
+ancien partage actif, sans protection ni hash, de cette même instance de CV.
+Les partages protégés, même déverrouillés, n’ont pas de canonique et portent
+`noindex, follow, noarchive`. Le profil public `/p/{slug}` conserve sa propre
+canonique : ses rubriques peuvent différer d’un CV composé à partir du profil. La fiche
 publique a une URL distincte. Son affichage GET est compté anonymement sur le lien
 admissible de plus petit identifiant, une seule fois par requête ; les requêtes
 HEAD, la liste et les sitemaps n’ajoutent pas de consultation.
