@@ -3,11 +3,13 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        {% block description %}  <meta name="description" content="Créez un CV à votre image et partagez votre parcours professionnel avec PerformCV.">
-        {% endblock %}
+        {% set description_block %}{% block page_description %}Créez un CV à votre image et partagez votre parcours professionnel avec PerformCV.{% endblock %}{% endset %}
+        {% set page_description = public_seo.plainText(description_block) %}
+        <meta name="description" content="{{ page_description }}">
         <title>{% block title %}PerformCV{% endblock %}</title>
         {% set canonical = public_canonical is defined ? public_canonical : public_seo.canonical(app.request.attributes.get('_route')) %}
         {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+        {% include 'shared/_social_meta.html.twig' with {social_page_title: public_seo.plainText(block('title'))} %}
         <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
         <script src="{{ asset('ui.js') }}" defer></script>
         <link rel="icon" type="image/png" href="/favicon.png">

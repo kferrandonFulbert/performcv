@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}Créer un CV en ligne gratuit et adapté aux ATS | PerformCV{% endblock %}
-{% block description %}<meta name="description" content="Créez votre CV en ligne gratuitement : rubriques personnalisables, PDF sur une colonne pour les ATS et lien de partage. Commencez avec PerformCV.">{% endblock %}
+{% block page_description %}Créez votre CV en ligne gratuitement : rubriques personnalisables, PDF sur une colonne pour les ATS et lien de partage. Commencez avec PerformCV.{% endblock %}
 {% block body %}
 <section class="hero">
     <div><p class="eyebrow">CRÉATION DE CV EN LIGNE GRATUIT</p><h1>Créez votre CV<br>en ligne,<br><em>gratuitement.</em></h1><p class="lead">Présentez votre parcours avec un CV personnalisé et un PDF conçu pour faciliter la lecture par les logiciels de recrutement (ATS). Renseignez vos expériences, choisissez vos rubriques et préparez votre candidature.</p><div class="actions"><a class="button" href="{{ path(app.request.cookies.count and app.user ? 'app_dashboard' : 'app_register') }}">Créer mon CV gratuitement <span aria-hidden="true">↗</span></a><a class="text-link" href="#cv-ats">Préparer un CV pour les ATS ↓</a></div><p class="fine">Création et enregistrement en PDF gratuits, avec un compte. Vous choisissez les rubriques et les informations à partager.</p></div>

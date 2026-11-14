@@ -7,7 +7,7 @@ namespace App\Controller;
 use App\Entity\{CvInstances, CvViews, Profiles, Users};
 use App\Form\UnlockType;
 use App\Repository\WorkspaceRepository;
-use App\Service\{CvPresentation, ShareAccess, WorkspaceWriter};
+use App\Service\{CvPresentation, PublicSeo, ShareAccess, WorkspaceWriter};
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\{Request, Response};
@@ -46,15 +46,15 @@ class PublicController extends AbstractController
     }
 
     #[Route('/p/{slug}', name: 'app_public_profile', requirements: ['slug' => '[a-f0-9]{32}'], methods: ['GET'])]
-    public function profile(string $slug, WorkspaceRepository $data, CvPresentation $presentation): Response
+    public function profile(string $slug, WorkspaceRepository $data, CvPresentation $presentation, PublicSeo $seo): Response
     {
         $profile = $data->publicProfile($slug) ?? throw $this->createNotFoundException();
 
-        return $this->render('cv/public.html.twig', $presentation->build($profile));
+        return $this->render('cv/public.html.twig', $presentation->build($profile) + ['social_public_url' => $seo->url('app_public_profile', ['slug' => $slug])]);
     }
 
     #[Route('/s/{token}', name: 'app_public_share', requirements: ['token' => '[a-f0-9]{64}'], methods: ['GET', 'POST'])]
-    public function share(Request $request, string $token, WorkspaceRepository $data, ShareAccess $access, CvPresentation $presentation, WorkspaceWriter $writer, PasswordHasherFactoryInterface $hashers): Response
+    public function share(Request $request, string $token, WorkspaceRepository $data, ShareAccess $access, CvPresentation $presentation, WorkspaceWriter $writer, PasswordHasherFactoryInterface $hashers, PublicSeo $seo): Response
     {
         $share = $data->share($token) ?? throw $this->createNotFoundException();
         if (!$access->active($share)) {
@@ -79,7 +79,9 @@ class PublicController extends AbstractController
             return $this->render('shared/form.html.twig', ['form' => $form, 'title' => 'Ce CV est protégé', 'eyebrow' => 'Accès sur invitation', 'back' => $this->generateUrl('app_home'), 'button' => 'Consulter le CV']);
         }
         // Count successful displays without identifying or tracking the visitor.
-        $response = $this->render('cv/public.html.twig', $presentation->build($profile, $cv));
+        $response = $this->render('cv/public.html.twig', $presentation->build($profile, $cv) + [
+            'social_public_url' => $access->needsPassword($share) ? null : $seo->url('app_public_share', ['token' => $token]),
+        ]);
         if ($request->isMethod('GET')) {
             $writer->save((new CvViews())->setCvShare($share)->setViewedAt(new \DateTime()));
         }

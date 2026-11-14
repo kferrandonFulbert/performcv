@@ -8,6 +8,27 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class SeoTest extends WebTestCase
 {
+    public function testSocialCardsUsePageContentAndTrustedUrls(): void
+    {
+        $client = static::createClient();
+        foreach (['/', '/mentions-legales', '/confidentialite', '/cookies', '/conditions-utilisation', '/cv-etudiant', '/cv-alternance', '/cv-stage', '/cv-developpeur-web', '/cv-sans-experience', '/cv-ats', '/exemple-cv/bts-sio', '/lettre-motivation/alternance'] as $path) {
+            $crawler = $client->request('GET', 'http://untrusted.example'.$path.'?utm_source=test');
+            self::assertResponseIsSuccessful();
+            self::assertSame($crawler->filter('title')->text(), $crawler->filter('meta[property="og:title"]')->attr('content'));
+            self::assertSame($crawler->filter('meta[name="description"]')->attr('content'), $crawler->filter('meta[property="og:description"]')->attr('content'));
+            self::assertSelectorExists('meta[property="og:url"][content="https://performcv.fr'.$path.'"]');
+            foreach (['title', 'description', 'image'] as $field) {
+                self::assertSelectorCount(1, 'meta[property="og:'.$field.'"]');
+                self::assertSame($crawler->filter('meta[property="og:'.$field.'"]')->attr('content'), $crawler->filter('meta[name="twitter:'.$field.'"]')->attr('content'));
+            }
+            self::assertSelectorExists('meta[name="twitter:card"][content="summary_large_image"]');
+            self::assertSelectorExists('meta[property="og:image"][content="https://performcv.fr/images/performcv-social.png"]');
+        }
+        $client->request('GET', '/connexion');
+        self::assertSelectorExists('meta[property="og:url"][content="https://performcv.fr/"]');
+        self::assertSame([1200, 630], array_slice(getimagesize(dirname(__DIR__, 2).'/public/images/performcv-social.png'), 0, 2));
+    }
+
     public function testOnlyAnonymousEditorialResponsesAllowSharedCaching(): void
     {
         $client = static::createClient();

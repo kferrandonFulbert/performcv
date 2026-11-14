@@ -48,3 +48,21 @@ Sources officielles consultées le 11 novembre 2026 :
 ## Annuaire ajouté le 13 novembre 2026
 
 Les constats ci-dessus décrivent le retest historique. L’annuaire `/annuaire-cv` et les fiches `/cv-public/{id}` ajoutent désormais des pages publiques sur publication volontaire. Les recherches n’imposent aucune directive robots, les fiches admissibles ont une canonique sur l’origine de confiance et sont découvertes via `/sitemap-cv.xml`. Les liens `/s/{token}` utilisent uniquement `noarchive`. Voir [annuaire, classement et limites](annuaire-cv.md).
+## Partage sur les réseaux sociaux
+
+Toutes les pages HTML héritant de `base.html.twig` incluent Open Graph et
+Twitter Card `summary_large_image`. Les titres et descriptions des pages
+publiques sont repris dans les deux formats, avec une URL sur l’origine de
+confiance de `PublicSeo`, sans paramètres de suivi.
+
+Les profils publics et liens de partage actifs sans mot de passe utilisent
+leur URL propre après contrôle d’accès. Les fiches de l’annuaire utilisent
+leur canonique. Les pages privées et les partages protégés, même déverrouillés,
+présentent une carte générique renvoyant à l’accueil, sans données personnelles.
+Les fragments d’aperçu ne sont pas des documents HTML complets.
+
+Le PNG commun `public/images/performcv-social.png` mesure 1 200 × 630 pixels.
+Il ne contient aucune photo de profil. Le bloc Twig texte `page_description`
+alimente la description HTML et sociale ; conserver l’échappement des attributs.
+Les réseaux doivent pouvoir accéder à l’URL et à l’image après déploiement.
+Leur cache peut retarder l’actualisation des aperçus ; le rendu final dépend du réseau.
