@@ -24,6 +24,18 @@ DirectoryIndex index.php
 
     RewriteEngine On
 
+    # Canonical production origin. THE_REQUEST remains unchanged after DirectoryIndex
+    # and internal rewrites; query strings are retained by default. Local hosts stay local.
+    RewriteCond %{HTTP_HOST} ^(?:www\.)?performcv\.fr(?::[0-9]+)?$ [NC]
+    RewriteCond %{THE_REQUEST} \s/+index\.php(?:/([^\s?]*))?(?:\?|\s) [NC]
+    RewriteRule ^ https://performcv.fr/%1 [R=301,L,NE]
+
+    RewriteCond %{HTTP_HOST} ^(?:www\.)?performcv\.fr(?::[0-9]+)?$ [NC]
+    RewriteCond %{HTTPS} !=on [OR]
+    RewriteCond %{HTTP_HOST} ^www\.performcv\.fr(?::[0-9]+)?$ [NC]
+    RewriteCond %{THE_REQUEST} \s/+([^\s?]*)
+    RewriteRule ^ https://performcv.fr/%1 [R=301,L,NE]
+
     # Determine the RewriteBase automatically and set it as environment variable.
     # If you are using Apache aliases to do mass virtual hosting or installed the
     # project in a subdirectory, the base path will be prepended to allow proper
@@ -68,7 +80,3 @@ DirectoryIndex index.php
         # RedirectTemp cannot be used instead
     </IfModule>
 </IfModule>
-
-RewriteEngine On
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

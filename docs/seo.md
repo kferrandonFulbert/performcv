@@ -66,3 +66,36 @@ Il ne contient aucune photo de profil. Le bloc Twig texte `page_description`
 alimente la description HTML et sociale ; conserver l’échappement des attributs.
 Les réseaux doivent pouvoir accéder à l’URL et à l’image après déploiement.
 Leur cache peut retarder l’actualisation des aperçus ; le rendu final dépend du réseau.
+
+## Corrections des constats modérés — 14 novembre 2026
+
+Cette section remplace la politique d’indexation des recherches et des partages
+décrite dans le paragraphe historique du 13 novembre ci-dessus.
+
+- `public/.htaccess` normalise les hôtes de production `performcv.fr` et
+  `www.performcv.fr` vers `https://performcv.fr` ; le chemin et les paramètres
+  proviennent de la requête initiale, avant les réécritures internes. Les accès
+  explicites via `index.php` sont normalisés dans le même saut. Les autres hôtes,
+  notamment localhost, conservent leur fonctionnement local. La configuration
+  du proxy d’hébergement reste à vérifier au déploiement.
+- Les recherches non vides et les requêtes invalides de `/annuaire-cv` ont
+  `X-Robots-Tag: noindex, follow`, sans canonique de remplacement ni blocage robots.
+  La liste sans recherche garde sa canonique, propre à chaque page.
+- `CvSeo` consolide uniquement les partages d’une même instance de CV. Si cette
+  instance est admissible à l’annuaire, sa fiche est la référence. Sinon, le plus
+  ancien partage actif sans protection ni hash est la référence. Une révocation
+  ou expiration entraîne une nouvelle sélection ; aucun jeton révoqué n’est conservé.
+  Un profil et des CV différents ne sont pas fusionnés, car leurs contenus peuvent
+  différer. Les partages protégés n’ont pas de canonique et restent en `noindex`,
+  même après déverrouillage, avec des métadonnées sociales génériques.
+- `GuideExamples` contient les parcours fictifs complets des huit guides. Leur
+  présentation utilise le même template Classique que le créateur, sans créer de
+  profil en base. Les variantes SLAM et SISR sont toutes deux illustrées. Les
+  rubriques, formulations avant/après et étapes de préparation sont expliquées.
+- Les guides indiquent la responsabilité éditoriale de l’éditeur, la date réelle
+  de cette révision et les références consultées. Aucune qualification de recruteur
+  ni relecture professionnelle n’est revendiquée. Les liens externes n’impliquent
+  aucune validation du produit par les organismes cités.
+
+Ces changements sont préparés dans le dépôt. Leur présence sur le domaine public
+ne doit pas être annoncée avant déploiement et retest HTTP.

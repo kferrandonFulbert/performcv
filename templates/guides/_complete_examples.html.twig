@@ -1,0 +1,14 @@
+<section class="guide-complete-examples" aria-labelledby="complete-examples-title">
+    <h2 id="complete-examples-title">{{ guide_page == 'bts-sio' ? 'Deux CV complets : SLAM et SISR' : 'Un exemple complet dans le créateur PerformCV' }}</h2>
+    <p>Ces parcours et coordonnées sont fictifs. La présentation ci-dessous utilise le même rendu Classique que les CV du créateur. Adaptez les informations à votre situation ; aucun diplôme, niveau ou résultat ne doit être repris sans correspondre à votre parcours.</p>
+    {% for example in guide_examples %}
+        <h3>{{ example.title }}</h3>
+        <p><strong>Choix des rubriques :</strong> {{ example.reason }}</p>
+        <div class="guide-cv-example">
+            {% include 'cv/_document.html.twig' with example.render only %}
+        </div>
+        <div class="guide-rewrite"><h3>Une formulation à améliorer</h3><p><strong>Avant :</strong> {{ example.before }}</p><p><strong>Après :</strong> {{ example.after }}</p></div>
+    {% endfor %}
+    <h3>Reproduire la démarche avec votre parcours</h3>
+    <ol><li>Créez votre profil avec vos coordonnées réelles, un titre ciblé et une accroche courte.</li><li>Ajoutez seulement les formations, activités et projets qui prouvent les compétences recherchées. Sélectionnez les rubriques à afficher dans votre CV.</li><li>Choisissez le modèle Classique, puis utilisez « Imprimer / PDF (ATS) » depuis votre CV enregistré. Vérifiez le texte extrait et le contenu avant l’envoi.</li></ol>
+</section>

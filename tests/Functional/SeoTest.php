@@ -133,6 +133,15 @@ final class SeoTest extends WebTestCase
             self::assertSelectorCount(1, 'meta[name="description"]');
             self::assertSelectorExists('article a[href="/inscription"]');
             self::assertSelectorExists('.guide-example');
+            self::assertSelectorExists('.guide-cv-example .cv-document');
+            self::assertSelectorExists('.guide-rewrite');
+            self::assertSelectorExists('.guide-editorial time[datetime="2026-11-14"]');
+            self::assertSelectorExists('.guide-editorial a[href="/mentions-legales"]');
+            self::assertSelectorExists('.guide-editorial a[href^="https://europass.europa.eu/"]');
+            if ($path === '/exemple-cv/bts-sio') {
+                self::assertSelectorCount(2, '.guide-cv-example .cv-document');
+                self::assertSelectorTextContains('.guide-complete-examples', 'BTS SIO — option SISR');
+            }
             $titles[] = $crawler->filter('title')->text();
             $descriptions[] = $crawler->filter('meta[name="description"]')->attr('content');
             $examples[] = $crawler->filter('.guide-example')->text();

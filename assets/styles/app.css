@@ -1439,6 +1439,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .guide-example{border-left:4px solid var(--line);padding:1rem 1.5rem;margin:1.5rem 0;background:var(--paper,#faf9f6)}
 .guide-example h3,.guide-example h4{margin-top:1rem}
 .guide-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:1rem 2rem;padding-left:1.25rem}
+.guide-cv-example{margin:1.5rem 0;background:#e9edf3;padding:clamp(8px,2vw,24px);border-radius:var(--radius)}
+.guide-cv-example .cv-document{min-height:0;padding:clamp(20px,4vw,48px)}
+.guide-cv-example .cv-header h4{font-size:clamp(1.5rem,4vw,2.5rem);line-height:1.2;margin:12px 0;color:var(--cv-color)}
+.guide-cv-example .cv-section h5{font-size:.9rem;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);padding-bottom:8px;color:var(--cv-color);margin:22px 0 12px}
+.guide-cv-example .cv-entry h6{font-size:1rem;margin:12px 0 4px}
+.guide-rewrite,.guide-editorial{border-top:1px solid var(--line);padding-top:1rem;margin-top:1.5rem}
 .privacy-notice{
     color:var(--muted);
     font-size:13px;

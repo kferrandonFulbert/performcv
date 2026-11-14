@@ -25,13 +25,16 @@ final class CvDirectoryController extends AbstractController
             DirectorySearch::terms($query);
             $results = $directory->search($query, $page);
         } catch (\InvalidArgumentException $error) {
-            return $this->render('directory/index.html.twig', ['query' => $query, 'page' => 1, 'items' => [], 'next' => false, 'error' => $error->getMessage(), 'public_canonical' => null], new Response(status: 400));
+            return $this->render('directory/index.html.twig', ['query' => $query, 'page' => 1, 'items' => [], 'next' => false, 'error' => $error->getMessage(), 'public_canonical' => null], new Response(status: 400, headers: ['X-Robots-Tag' => 'noindex, follow']));
         }
         if ($page > 1 && !$results['items']) { throw $this->createNotFoundException(); }
         $response = $this->render('directory/index.html.twig', $results + [
             'query' => $query, 'page' => $page,
             'public_canonical' => $query === '' ? $seo->url('app_cv_directory', $page > 1 ? ['page' => $page] : []) : null,
         ]);
+        if ($query !== '') {
+            $response->headers->set('X-Robots-Tag', 'noindex, follow');
+        }
         return $response;
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\GuideExamples;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,8 +22,8 @@ final class GuideController extends AbstractController
     #[Route('/cv-ats', name: 'app_cv_ats', defaults: ['page' => 'ats'], methods: ['GET'])]
     #[Route('/exemple-cv/bts-sio', name: 'app_cv_bts_sio', defaults: ['page' => 'bts-sio'], methods: ['GET'])]
     #[Route('/lettre-motivation/alternance', name: 'app_lettre_alternance', defaults: ['page' => 'lettre-alternance'], methods: ['GET'])]
-    public function show(string $page): Response
+    public function show(string $page, GuideExamples $examples): Response
     {
-        return $this->render('guides/'.$page.'.html.twig');
+        return $this->render('guides/'.$page.'.html.twig', ['guide_examples' => $examples->forPage($page), 'guide_page' => $page]);
     }
 }

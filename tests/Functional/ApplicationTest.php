@@ -256,6 +256,7 @@ class ApplicationTest extends WebTestCase
         $this->em()->flush();
         $this->client->request('GET', '/p/'.str_repeat('a', 32));
         self::assertResponseIsSuccessful();
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/p/'.str_repeat('a', 32).'"]');
         self::assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;', $this->client->getResponse()->getContent());
         self::assertStringNotContainsString('<script>alert(1)</script>', $this->client->getResponse()->getContent());
     }
@@ -276,9 +277,13 @@ class ApplicationTest extends WebTestCase
         $share = $this->em()->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
         $user = $this->em()->find(Users::class, $this->ownerId);
         $share->setPasswordProtected(1)->setPasswordHash($user->getPasswordHash());
+        $share->getCvInstance()->setDirectoryListed(true);
+        $this->em()->persist((new CvShares())->setCvInstance($share->getCvInstance())->setShareToken(str_repeat('f', 64)));
         $this->em()->flush();
         $crawler = $this->client->request('GET', '/s/'.$this->token);
         self::assertSelectorNotExists('.cv-document');
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow, noarchive');
+        self::assertSelectorNotExists('link[rel="canonical"]');
         $crawler = $this->client->submit($crawler->selectButton('Consulter le CV')->form(['unlock[password]' => 'wrong-password']));
         self::assertSelectorTextContains('.form-card ul', 'Mot de passe incorrect');
         self::assertSame(0, $this->em()->getRepository(CvViews::class)->count([]));
@@ -286,6 +291,72 @@ class ApplicationTest extends WebTestCase
         self::assertResponseStatusCodeSame(303);
         $this->client->followRedirect();
         self::assertSelectorExists('.cv-document');
+        self::assertSelectorNotExists('link[rel="canonical"]');
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow, noarchive');
+    }
+
+    public function testShareCanonicalsFollowPublicationAndValidLinksOfTheSameCv(): void
+    {
+        $em = $this->em();
+        $cv = $em->find(CvInstances::class, $this->cvId);
+        $secondToken = str_repeat('c', 64);
+        $em->persist((new CvShares())->setCvInstance($cv)->setShareToken($secondToken));
+        $em->flush();
+        $this->client->request('GET', 'http://untrusted.example/s/'.$secondToken.'?utm_source=test');
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/s/'.$this->token.'"]');
+        self::assertSelectorExists('meta[property="og:url"][content="https://performcv.fr/s/'.$this->token.'"]');
+        $this->em()->find(CvInstances::class, $this->cvId)->setDirectoryListed(true);
+        $this->em()->flush();
+        $this->client->request('GET', '/s/'.$secondToken);
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/cv-public/'.$this->cvId.'"]');
+        $cv = $this->em()->find(CvInstances::class, $this->cvId);
+        $cv->setDirectoryListed(false);
+        $share = $this->em()->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
+        $share->setExpiresAt(new \DateTime('-1 hour'));
+        $different = (new CvInstances())->setProfile($cv->getProfile())->setTemplate($cv->getTemplate())->setSectionsVisibility(['experiences' => true]);
+        $this->em()->persist($different);
+        $this->em()->flush();
+        $otherToken = str_repeat('d', 64);
+        $this->em()->persist((new CvShares())->setCvInstance($different)->setShareToken($otherToken));
+        $this->em()->flush();
+        $this->client->request('GET', '/s/'.$secondToken);
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/s/'.$secondToken.'"]');
+        $share = $this->em()->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
+        $share->setExpiresAt(null)->setPasswordProtected(1)->setPasswordHash('fixture');
+        $this->em()->flush();
+        $this->client->request('GET', '/s/'.$secondToken);
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/s/'.$secondToken.'"]');
+        $share = $this->em()->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
+        $share->setPasswordProtected(0);
+        $this->em()->flush();
+        $this->client->request('GET', '/s/'.$secondToken);
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/s/'.$secondToken.'"]');
+        $this->client->request('GET', '/s/'.$otherToken);
+        self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/s/'.$otherToken.'"]');
+        self::assertSelectorExists('.cv-experiences');
+        $share = $this->em()->getRepository(CvShares::class)->findOneBy(['share_token' => $secondToken]);
+        $share->setIsPublic(0);
+        $this->em()->flush();
+        $this->client->catchExceptions(true);
+        $this->client->request('GET', '/s/'.$secondToken);
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testDirectorySearchIsNoindexWithoutBlockingThePublicList(): void
+    {
+        $this->client->request('GET', '/annuaire-cv');
+        self::assertResponseIsSuccessful();
+        self::assertFalse($this->client->getResponse()->headers->has('X-Robots-Tag'));
+        foreach (['designer', 'zzzinexistant', '   '] as $query) {
+            $this->client->request('GET', '/annuaire-cv', ['q' => $query]);
+            self::assertResponseIsSuccessful();
+            if (trim($query) !== '') {
+                self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow');
+                self::assertSelectorNotExists('link[rel="canonical"]');
+            } else {
+                self::assertFalse($this->client->getResponse()->headers->has('X-Robots-Tag'));
+            }
+        }
     }
 
     public function testCreateCvAndShareAndRevoke(): void
@@ -1000,7 +1071,7 @@ class ApplicationTest extends WebTestCase
             $this->client->request('GET', '/annuaire-cv', ['q' => $query]);
             self::assertResponseIsSuccessful();
             self::assertSelectorCount(1, '.directory-card');
-            self::assertFalse($this->client->getResponse()->headers->has('X-Robots-Tag'));
+            self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow');
         }
         $this->client->request('GET', '/annuaire-cv', ['q' => 'SecretCompany']);
         self::assertSelectorCount(0, '.directory-card');
@@ -1152,7 +1223,7 @@ class ApplicationTest extends WebTestCase
         self::assertResponseStatusCodeSame(400);
         $this->client->request('GET', '/annuaire-cv?q='.str_repeat('a', 81));
         self::assertResponseStatusCodeSame(400);
-        self::assertFalse($this->client->getResponse()->headers->has('X-Robots-Tag'));
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, follow');
     }
 
     public function testDirectoryCompletenessUsesVisibleContentAndViewsCannotBoostRanking(): void

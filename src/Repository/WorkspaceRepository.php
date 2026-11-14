@@ -102,6 +102,16 @@ class WorkspaceRepository
         return $this->em->getRepository(CvShares::class)->findOneBy(['share_token' => $token]);
     }
 
+    public function preferredPublicShare(int $cvId): ?CvShares
+    {
+        $id = $this->em->getConnection()->fetchOne(
+            'SELECT id FROM cv_shares WHERE cv_instance_id = :cv AND is_public = 1 AND password_protected = 0 AND password_hash IS NULL AND (expires_at IS NULL OR expires_at > :now) ORDER BY id ASC LIMIT 1',
+            ['cv' => $cvId, 'now' => gmdate('Y-m-d H:i:s')],
+        );
+
+        return $id === false ? null : $this->em->find(CvShares::class, (int) $id);
+    }
+
     public function publicProfile(string $slug): ?Profiles
     {
         return $this->em->getRepository(Profiles::class)->findOneBy(['slug' => $slug, 'is_public' => 1]);
