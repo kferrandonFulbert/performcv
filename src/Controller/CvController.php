@@ -15,6 +15,9 @@ use Symfony\Component\HttpFoundation\{Request, Response};
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Permet au propriétaire de composer ses CV, de gérer leurs liens de partage et leur publication dans l’annuaire.
+ */
 #[Route('/app')]
 class CvController extends AbstractController
 {

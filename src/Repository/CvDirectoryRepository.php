@@ -10,6 +10,9 @@ use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Sélectionne les CV admissibles à l’annuaire et classe les résultats à partir des informations visibles.
+ */
 final class CvDirectoryRepository
 {
     public const PAGE_SIZE = 20;

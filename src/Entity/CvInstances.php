@@ -6,6 +6,9 @@ use App\Repository\CvInstancesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Configuration d’un CV composé à partir d’un modèle et des rubriques actuelles du profil.
+ */
 #[ORM\Table(name: 'cv_instances')]
 #[ORM\Index(name: 'idx_cv_instances_profile_id', columns: ['profile_id'])]
 #[ORM\Index(name: 'idx_cv_instances_template_id', columns: ['template_id'])]

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+/**
+ * Définit les modèles fournis par l’application et les styles de confiance utilisés pour les rendre.
+ */
 final class TemplateCatalog
 {
     public const MODELS = [

@@ -7,6 +7,9 @@ namespace App\Service;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * Gère le stockage privé des portraits et leur lecture après suppression des métadonnées.
+ */
 class ProfilePhoto
 {
     private string $directory;

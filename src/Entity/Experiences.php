@@ -6,6 +6,9 @@ use App\Repository\ExperiencesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Poste occupé dans une entreprise, terminé ou en cours, rattaché au parcours professionnel du profil.
+ */
 #[ORM\Table(name: 'experiences')]
 #[ORM\Index(name: 'idx_experiences_profile_id', columns: ['profile_id'])]
 #[ORM\Entity(repositoryClass: ExperiencesRepository::class)]

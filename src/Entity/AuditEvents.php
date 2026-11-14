@@ -7,7 +7,9 @@ namespace App\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/** Scalar references deliberately survive deletion of the account or resource. */
+/**
+ * Trace d’une action métier dont les identifiants restent consultables après suppression du compte ou de la ressource.
+ */
 #[ORM\Entity(readOnly: true)]
 #[ORM\Table(name: 'audit_events')]
 #[ORM\Index(name: 'idx_audit_occurred', columns: ['occurred_at'])]

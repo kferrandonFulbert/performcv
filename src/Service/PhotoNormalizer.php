@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-/** Rebuild pixels instead of copying EXIF, GPS, IPTC, XMP or image comments. */
+/**
+ * Réencode les pixels du portrait en tenant compte de son orientation et en supprimant les métadonnées.
+ */
 final class PhotoNormalizer
 {
     public function normalize(string $path): string

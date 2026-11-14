@@ -7,6 +7,9 @@ namespace App\Service;
 use App\Entity\{CvInstances, CvShares, CvViews, Profiles, Users, TemplatePurchases};
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Enregistre les modifications de l’espace personnel et supprime les ressources liées dans une transaction.
+ */
 class WorkspaceWriter
 {
     public function __construct(private EntityManagerInterface $em, private ProfilePhoto $photos, private AuditTrail $audit, private AuditContext $context)

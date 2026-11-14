@@ -7,6 +7,9 @@ namespace App\Service;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\{Cookie, Request};
 
+/**
+ * Signe et vérifie les préférences de consentement pour la mesure d’audience.
+ */
 final class CookieConsent
 {
     public const COOKIE_NAME = 'performcv_consent';

@@ -13,6 +13,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+/**
+ * Crée un parcours fictif pour les démonstrations en environnement local ou de test.
+ */
 #[AsCommand(name: 'app:demo', description: 'Crée un parcours fictif, uniquement en environnement local ou test.')]
 class DemoCommand extends Command
 {

@@ -12,6 +12,11 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Crée ou actualise les modèles du catalogue en les identifiant par leur slug.
+ *
+ * L’ancien modèle Classique est réutilisé pour préserver les CV qui le référencent.
+ */
 #[AsCommand(name: 'app:templates:seed', description: 'Installe ou actualise les huit modèles du catalogue PerformCV.')]
 class SeedTemplatesCommand extends Command
 {

@@ -14,6 +14,11 @@ use Symfony\Component\HttpFoundation\{Request, Response};
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Sert l’accueil, les pages légales, les profils publics et les CV partagés.
+ *
+ * L’accès par lien de partage dépend de sa validité et de son éventuelle protection par mot de passe.
+ */
 class PublicController extends AbstractController
 {
     #[Route('/', name: 'app_home', methods: ['GET'])]

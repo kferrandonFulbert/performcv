@@ -6,6 +6,9 @@ use App\Repository\ProjectsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Réalisation d’un profil décrivant les technologies utilisées et sa place parmi les projets présentés.
+ */
 #[ORM\Table(name: 'projects')]
 #[ORM\Index(name: 'idx_projects_profile_id', columns: ['profile_id'])]
 #[ORM\Entity(repositoryClass: ProjectsRepository::class)]

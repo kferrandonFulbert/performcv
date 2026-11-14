@@ -12,6 +12,9 @@ use Symfony\Component\Console\Input\{InputInterface, InputOption};
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+/**
+ * Purge les événements d’audit en base et les anciens fichiers du journal de sécurité.
+ */
 #[AsCommand(name: 'app:audit:purge', description: 'Supprime les événements d’audit de plus de six mois.')]
 class PurgeAuditCommand extends Command
 {

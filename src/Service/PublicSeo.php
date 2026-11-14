@@ -6,6 +6,9 @@ namespace App\Service;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+/**
+ * Construit les URL canoniques et les entrées des sitemaps à partir de l’origine de confiance.
+ */
 final class PublicSeo
 {
     private const ROUTES = [

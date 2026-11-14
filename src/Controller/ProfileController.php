@@ -13,6 +13,9 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\{Request, Response};
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Gère les profils du compte connecté, leurs portraits et les entrées de leurs rubriques.
+ */
 #[Route('/app')]
 class ProfileController extends AbstractController
 {

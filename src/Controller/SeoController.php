@@ -9,6 +9,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Publie le fichier robots.txt et les sitemaps des pages publiques et des guides.
+ */
 final class SeoController extends AbstractController
 {
     #[Route('/robots.txt', name: 'app_robots', methods: ['GET'])]

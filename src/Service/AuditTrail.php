@@ -8,6 +8,9 @@ use App\Entity\{Users, Profiles, CvInstances, CvShares};
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Inscrit les actions métier dans le journal de la base au sein de la transaction appelante.
+ */
 final class AuditTrail
 {
     private const ACTIONS = [

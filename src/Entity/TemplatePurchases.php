@@ -7,6 +7,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
 
+/**
+ * Achat unique d’un modèle par un compte ; seule la date de confirmation ouvre le droit d’utilisation.
+ */
 #[ORM\Entity(repositoryClass: \App\Repository\TemplatePurchasesRepository::class)]
 #[ORM\Table(name: 'template_purchases')]
 #[ORM\UniqueConstraint(name: 'uniq_purchase_user_template', columns: ['user_id', 'template_id'])]

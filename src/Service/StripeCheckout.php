@@ -6,6 +6,9 @@ namespace App\Service;
 
 use Stripe\{StripeClient, Webhook};
 
+/**
+ * Crée et consulte les sessions de paiement Stripe et vérifie la signature des notifications reçues.
+ */
 class StripeCheckout
 {
     public function __construct(private string $secretKey, private string $webhookSecret) {}

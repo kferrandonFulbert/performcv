@@ -10,6 +10,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
+/**
+ * Limite les tentatives de connexion, d’inscription et de déverrouillage des CV partagés.
+ *
+ * Ces trois parcours utilisent un même compteur local par adresse IP.
+ */
 class AttemptLimitSubscriber implements EventSubscriberInterface
 {
     public function __construct(#[Autowire('%kernel.cache_dir%')] private string $cacheDir)

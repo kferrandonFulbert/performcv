@@ -12,6 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+/**
+ * Supprime les anciennes consultations de CV et nettoie les compteurs de tentatives périmés.
+ */
 #[AsCommand(name: 'app:views:purge', description: 'Supprime les consultations de plus de 90 jours.')]
 class PurgeViewsCommand extends Command
 {

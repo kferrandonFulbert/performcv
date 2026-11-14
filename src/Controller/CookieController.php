@@ -9,6 +9,9 @@ use Symfony\Component\HttpFoundation\{Request, Response};
 use App\Service\CookieConsent;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Affiche les préférences de mesure d’audience et enregistre le choix dans un cookie signé.
+ */
 final class CookieController extends AbstractController
 {
     #[Route('/cookies', name: 'app_cookies', methods: ['GET', 'POST'])]

@@ -6,6 +6,9 @@ use App\Repository\SkillsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Compétence du catalogue partagé ; le niveau de maîtrise appartient à chaque profil.
+ */
 #[ORM\Table(name: 'skills')]
 #[ORM\Entity(repositoryClass: SkillsRepository::class)]
 class Skills

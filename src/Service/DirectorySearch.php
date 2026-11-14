@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+/**
+ * Normalise les termes de recherche de l’annuaire et échappe les jokers pour la comparaison SQL.
+ */
 final class DirectorySearch
 {
     // Deliberately identical folding on MySQL and SQLite, including upper-case accents.

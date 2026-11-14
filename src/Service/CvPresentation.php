@@ -8,6 +8,9 @@ use App\Entity\{CvInstances, Profiles};
 use App\Repository\WorkspaceRepository;
 use App\Form\CvType;
 
+/**
+ * Prépare les données du CV en tenant compte du modèle et des rubriques visibles.
+ */
 class CvPresentation
 {
     public function __construct(private WorkspaceRepository $data, private TemplateAccess $access, private ProfilePhoto $photos)

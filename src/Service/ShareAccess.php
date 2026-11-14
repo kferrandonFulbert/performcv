@@ -6,6 +6,9 @@ namespace App\Service;
 
 use App\Entity\CvShares;
 
+/**
+ * Évalue la visibilité, l’expiration et la protection par mot de passe d’un lien de partage.
+ */
 class ShareAccess
 {
     public function active(CvShares $share, ?\DateTimeInterface $now = null): bool

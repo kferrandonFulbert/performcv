@@ -6,6 +6,9 @@ use App\Repository\CvSharesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Lien de partage d’un CV avec ses propres conditions de visibilité, d’expiration et de protection.
+ */
 #[ORM\Table(name: 'cv_shares')]
 #[ORM\UniqueConstraint(name: 'share_token', columns: ['share_token'])]
 #[ORM\Index(name: 'idx_cv_shares_cv_instance_id', columns: ['cv_instance_id'])]

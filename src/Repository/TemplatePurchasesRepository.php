@@ -8,6 +8,9 @@ use App\Entity\TemplatePurchases;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * Distingue les achats en attente des achats confirmés pour un compte et un modèle.
+ */
 class TemplatePurchasesRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)

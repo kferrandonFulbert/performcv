@@ -8,6 +8,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Affiche le guide éditorial associé à chaque route publique de conseil à la candidature.
+ */
 final class GuideController extends AbstractController
 {
     #[Route('/cv-etudiant', name: 'app_cv_etudiant', defaults: ['page' => 'etudiant'], methods: ['GET'])]

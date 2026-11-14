@@ -6,6 +6,9 @@ use App\Repository\CertificationsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Certification d’un profil, avec son organisme émetteur et les références du justificatif.
+ */
 #[ORM\Table(name: 'certifications')]
 #[ORM\Index(name: 'idx_certifications_profile_id', columns: ['profile_id'])]
 #[ORM\Entity(repositoryClass: CertificationsRepository::class)]

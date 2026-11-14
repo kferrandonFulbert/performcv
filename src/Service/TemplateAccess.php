@@ -8,6 +8,9 @@ use App\Entity\CvTemplates;
 use App\Repository\TemplatePurchasesRepository;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
+/**
+ * Vérifie le droit d’utiliser un modèle gratuit ou dont l’achat a été confirmé pour le compte.
+ */
 class TemplateAccess
 {
     public function __construct(private TemplatePurchasesRepository $purchases)
