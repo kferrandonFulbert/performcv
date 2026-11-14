@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ heading }} | PerformCV{% endblock %}
-{% block description %}<meta name="description" content="{{ description }}">{% endblock %}
+{% block page_description %}{{ description }}{% endblock %}
 {% block body %}
 <article class="intro-section home-content guide-content">
     <nav aria-label="Fil d’Ariane"><a href="{{ path('app_home') }}">Accueil</a> / <span aria-current="page">{{ heading }}</span></nav>

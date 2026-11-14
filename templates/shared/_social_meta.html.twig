@@ -1,0 +1,19 @@
+{% set social_url = social_public_url|default(canonical|default(null)) %}
+{% set social_title = social_url ? social_page_title : 'PerformCV — Créez votre CV en ligne' %}
+{% set social_description = social_url ? page_description : 'Créez un CV à votre image et partagez votre parcours professionnel avec PerformCV.' %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PerformCV">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="{{ social_title }}">
+<meta property="og:description" content="{{ social_description }}">
+<meta property="og:url" content="{{ social_url ?: public_seo.url('app_home') }}">
+<meta property="og:image" content="{{ public_seo.socialImageUrl }}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PerformCV — Votre parcours. Vos perspectives.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ social_title }}">
+<meta name="twitter:description" content="{{ social_description }}">
+<meta name="twitter:image" content="{{ public_seo.socialImageUrl }}">
+<meta name="twitter:image:alt" content="PerformCV — Votre parcours. Vos perspectives.">

@@ -62,4 +62,15 @@ final class PublicSeo
         // Only the path comes from the router: never trust the request's host or scheme.
         return $this->origin.$this->urls->generate($route, $parameters, UrlGeneratorInterface::ABSOLUTE_PATH);
     }
+
+    public function socialImageUrl(): string
+    {
+        return $this->origin.'/images/performcv-social.png';
+    }
+
+    /** Convert an escaped Twig text block back to text before attribute escaping. */
+    public function plainText(string $text): string
+    {
+        return trim(html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
 }

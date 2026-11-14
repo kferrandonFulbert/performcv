@@ -88,6 +88,29 @@ class ApplicationTest extends WebTestCase
         self::assertResponseRedirects('/connexion');
     }
 
+    public function testSocialCardsRespectPublicAndProtectedCvAccess(): void
+    {
+        $profile = $this->em()->find(Profiles::class, $this->profileId);
+        $profile->setTitle('Design "produit" & web <script>unsafe</script>');
+        $this->em()->flush();
+        $crawler = $this->client->request('GET', 'http://untrusted.example/s/'.$this->token.'?tracking=test');
+        self::assertResponseIsSuccessful();
+        self::assertSame('Design "produit" & web <script>unsafe</script> — PerformCV', $crawler->filter('meta[property="og:title"]')->attr('content'));
+        self::assertSelectorExists('meta[property="og:url"][content="https://performcv.fr/s/'.$this->token.'"]');
+        self::assertSelectorNotExists('head script:not([src])');
+        $share = $this->em()->getRepository(CvShares::class)->findOneBy(['share_token' => $this->token]);
+        $share->setPasswordProtected(1)->setPasswordHash('fixture');
+        $this->em()->flush();
+        $this->client->request('GET', '/s/'.$this->token);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('meta[property="og:title"][content="PerformCV — Créez votre CV en ligne"]');
+        self::assertSelectorExists('meta[property="og:url"][content="https://performcv.fr/"]');
+        $this->client->loginUser($this->em()->find(Users::class, $this->ownerId));
+        $this->client->request('GET', '/app/profils/'.$this->profileId);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('meta[property="og:title"][content="PerformCV — Créez votre CV en ligne"]');
+    }
+
     public function testRegistrationAndRealLogin(): void
     {
         $crawler = $this->client->request('GET', '/inscription');
@@ -1032,6 +1055,8 @@ class ApplicationTest extends WebTestCase
         $this->client->request('GET', 'http://untrusted.example/cv-public/'.$this->cvId);
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('link[rel="canonical"][href="https://performcv.fr/cv-public/'.$this->cvId.'"]');
+        self::assertSelectorExists('meta[property="og:url"][content="https://performcv.fr/cv-public/'.$this->cvId.'"]');
+        self::assertSelectorExists('meta[property="og:title"][content="CV Camille Martin — Designer produit — PerformCV"]');
         self::assertSelectorNotExists('.cv-experiences');
         self::assertStringNotContainsString('SecretCompany', $this->client->getResponse()->getContent());
         $this->client->request('GET', 'http://untrusted.example/sitemap.xml');

@@ -66,6 +66,8 @@ Ne pas imposer un seul profil par utilisateur, un seul CV par profil ou un seul 
 
 ## Organisation des développements
 
+- Le gabarit commun inclut Open Graph et Twitter Card via `shared/_social_meta.html.twig`. Le bloc texte `page_description` alimente la description HTML et sociale ; les textes capturés sont normalisés par `PublicSeo::plainText()` puis échappés dans les attributs. Les pages privées et partages protégés gardent des métadonnées sociales génériques, même après déverrouillage. L’image sociale commune est `public/images/performcv-social.png` ; ne jamais y substituer automatiquement une photo téléversée.
+
 - `GuideController` et `templates/guides/` portent huit pages publiques éditoriales à routes explicites, liées depuis l’accueil. `PublicSeo` autorise leurs canoniques et leur présence au sitemap. La page de lettre de motivation fournit un exemple à personnaliser ; aucun générateur de lettres n’est implémenté.
 
 - `src/Entity/` : modèle persistant et mapping ; `src/Repository/WorkspaceRepository.php` : lectures métier. Les repositories par entité restent principalement des squelettes de `ServiceEntityRepository`.

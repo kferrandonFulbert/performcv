@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ query ? 'Recherche : ' ~ query : 'Annuaire des CV publics' }} — PerformCV{% endblock %}
-{% block description %}<meta name="description" content="Découvrez des parcours professionnels et recherchez un CV public par nom, prénom, métier ou compétence dans l’annuaire PerformCV.">{% endblock %}
+{% block page_description %}Découvrez des parcours professionnels et recherchez un CV public par nom, prénom, métier ou compétence dans l’annuaire PerformCV.{% endblock %}
 {% block body %}
 <header class="page-heading"><div><p class="eyebrow">DES PARCOURS À DÉCOUVRIR</p><h1>Annuaire des CV publics</h1><p class="lead">Recherchez une personne, un métier ou une compétence parmi les CV publiés volontairement.</p></div></header>
 <form method="get" action="{{ path('app_cv_directory') }}" class="directory-search">
