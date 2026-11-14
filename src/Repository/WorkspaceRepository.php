@@ -8,6 +8,9 @@ use App\Entity\{CvInstances, CvShares, CvTemplates, CvViews, Profiles, ProfileSk
 use App\Service\SectionCatalog;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Rassemble les profils, rubriques, CV et partages nécessaires aux parcours de l’espace personnel.
+ */
 class WorkspaceRepository
 {
     public function __construct(private EntityManagerInterface $em)

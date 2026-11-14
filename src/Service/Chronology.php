@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+/**
+ * Vérifie la cohérence des périodes et des dates d’expiration des rubriques du profil.
+ */
 class Chronology
 {
     public function error(object $entry): ?string

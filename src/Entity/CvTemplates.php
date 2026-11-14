@@ -6,6 +6,9 @@ use App\Repository\CvTemplatesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Modèle du catalogue avec son prix en centimes et ses caractéristiques de présentation.
+ */
 #[ORM\Table(name: 'cv_templates')]
 #[ORM\Entity(repositoryClass: CvTemplatesRepository::class)]
 #[ORM\UniqueConstraint(name: 'uniq_cv_template_slug', columns: ['slug'])]

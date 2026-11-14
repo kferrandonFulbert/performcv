@@ -17,6 +17,9 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+/**
+ * Gère l’inscription, la connexion et les opérations du titulaire sur son compte.
+ */
 class SecurityController extends AbstractController
 {
     #[Route('/connexion', name: 'app_login', methods: ['GET', 'POST'])]

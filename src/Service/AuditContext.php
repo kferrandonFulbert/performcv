@@ -8,6 +8,9 @@ use App\Entity\Users;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+/**
+ * Fournit l’acteur et l’identifiant de corrélation utilisés pour journaliser une action.
+ */
 final class AuditContext
 {
     public function __construct(private RequestStack $requests, private TokenStorageInterface $tokens)

@@ -8,6 +8,11 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
+/**
+ * Applique les en-têtes de sécurité et les règles de cache aux réponses principales.
+ *
+ * La politique de sécurité du contenu tient compte du consentement à la mesure d’audience.
+ */
 class ResponseHeadersSubscriber implements EventSubscriberInterface
 {
     public function __construct(private \App\Service\CookieConsent $consent)

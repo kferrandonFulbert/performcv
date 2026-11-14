@@ -7,6 +7,9 @@ namespace App\Service;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+/**
+ * Consigne les événements de sécurité avec leur acteur et leur identifiant de corrélation.
+ */
 final class SecurityAudit
 {
     public function __construct(

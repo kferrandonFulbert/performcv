@@ -6,6 +6,9 @@ use App\Repository\EducationsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Formation suivie par le titulaire du profil, avec sa position dans la rubrique des formations.
+ */
 #[ORM\Table(name: 'educations')]
 #[ORM\Index(name: 'idx_educations_profile_id', columns: ['profile_id'])]
 #[ORM\Entity(repositoryClass: EducationsRepository::class)]

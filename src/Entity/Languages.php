@@ -6,6 +6,9 @@ use App\Repository\LanguagesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Langue déclarée sur un profil avec le niveau de maîtrise associé.
+ */
 #[ORM\Table(name: 'languages')]
 #[ORM\Index(name: 'idx_languages_profile_id', columns: ['profile_id'])]
 #[ORM\Entity(repositoryClass: LanguagesRepository::class)]

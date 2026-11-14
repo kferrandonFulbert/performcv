@@ -11,6 +11,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\{Request, Response};
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Expose la recherche, les fiches publiques et les sitemaps des CV admissibles à l’annuaire.
+ */
 final class CvDirectoryController extends AbstractController
 {
     #[Route('/annuaire-cv', name: 'app_cv_directory', methods: ['GET'])]

@@ -8,6 +8,9 @@ use App\Entity\{CvTemplates, TemplatePurchases, Users};
 use App\Repository\TemplatePurchasesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Coordonne le passage en caisse et la confirmation de l’achat d’un modèle après paiement.
+ */
 class TemplatePayment
 {
     public function __construct(

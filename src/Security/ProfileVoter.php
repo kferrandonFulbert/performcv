@@ -10,6 +10,9 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
+/**
+ * Contrôle l’accès propriétaire à un profil à partir du compte connecté.
+ */
 class ProfileVoter extends Voter
 {
     protected function supports(string $attribute, mixed $subject): bool

@@ -6,6 +6,9 @@ namespace App\Service;
 
 use App\Entity\{Certifications, Educations, Experiences, Languages, ProfileSkills, Projects};
 
+/**
+ * Associe chaque rubrique du profil à son entité, à son libellé et à sa règle de classement.
+ */
 class SectionCatalog
 {
     public const SECTIONS = [

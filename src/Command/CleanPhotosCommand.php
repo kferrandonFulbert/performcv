@@ -10,6 +10,11 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\{InputInterface, InputOption};
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Réencode les portraits stockés pour en retirer les métadonnées privées.
+ *
+ * Le mode --dry-run recense les fichiers concernés sans les modifier.
+ */
 #[AsCommand(name: 'app:photos:clean', description: 'Ré-encode les photos stockées pour supprimer leurs métadonnées privées.')]
 final class CleanPhotosCommand extends Command
 {

@@ -11,6 +11,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\{InputInterface, InputOption};
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Affiche un extrait du journal métier, avec un filtre facultatif sur l’acteur.
+ */
 #[AsCommand(name: 'app:audit:list', description: 'Consulte les événements d’audit (accès réservé à l’exploitation).')]
 class ListAuditCommand extends Command
 {

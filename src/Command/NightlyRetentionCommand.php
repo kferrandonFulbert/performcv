@@ -9,6 +9,11 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\{ArrayInput, InputInterface, InputOption};
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Lance les purges des consultations et de l’audit, y compris en mode simulation.
+ *
+ * Les deux purges sont tentées même si la première échoue.
+ */
 #[AsCommand(name: 'app:retention:nightly', description: 'Exécute les purges quotidiennes des consultations, compteurs et traces.')]
 final class NightlyRetentionCommand extends Command
 {

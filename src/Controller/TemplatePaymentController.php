@@ -12,6 +12,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\{Request, Response};
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Lance le paiement d’un modèle et reçoit les notifications Stripe.
+ *
+ * La signature est vérifiée avant de transmettre l’événement au service de paiement.
+ */
 class TemplatePaymentController extends AbstractController
 {
     #[Route('/app/cv/{id}/modeles/{templateId}/acheter', name: 'app_template_buy', requirements: ['id' => '\d+', 'templateId' => '\d+'], methods: ['POST'])]

@@ -6,6 +6,9 @@ use App\Repository\ProfilesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Profil professionnel d’un compte, réutilisable dans plusieurs CV.
+ */
 #[ORM\Table(name: 'profiles')]
 #[ORM\UniqueConstraint(name: 'slug', columns: ['slug'])]
 #[ORM\Index(name: 'idx_profiles_user_id', columns: ['user_id'])]

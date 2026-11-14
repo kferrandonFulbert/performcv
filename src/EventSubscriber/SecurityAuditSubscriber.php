@@ -11,6 +11,9 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Http\Event\{LoginSuccessEvent, LoginFailureEvent, LogoutEvent};
 
+/**
+ * Journalise les connexions réussies ou refusées, les déconnexions et les réponses HTTP 403 et 429.
+ */
 final class SecurityAuditSubscriber implements EventSubscriberInterface
 {
     public function __construct(private SecurityAudit $audit, private AuditContext $context)
